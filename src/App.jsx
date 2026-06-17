@@ -1,3 +1,5 @@
+
+
 import { useState } from "react";
 import "./App.css";
 import useAuth from "./hooks/useAuth";
@@ -79,39 +81,59 @@ export default function App() {
     updateListings([]);
     setProgress(5);
 
+    const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+
     try {
       setLoadingMsg("Reading product page…");
       setProgress(15);
-      const API_URL = import.meta.env.VITE_API_URL || '';
-      const scrapeRes = await fetch(`${API_URL}/api/scrape?url=${encodeURIComponent(url.trim())}`);
+      const scrapeRes = await fetch(`/api/scrape?url=${encodeURIComponent(url.trim())}`);
       const scraped = await scrapeRes.json();
       console.log('Scraped product:', scraped);
 
       setLoadingMsg("Identifying item…");
       setProgress(45);
       const slug = extractSlug(url.trim());
+      const prompt = `You are a fashion assistant. Here is data scraped from a product page:
+- URL slug: "${slug}"
+- Scraped name: "${scraped.name || 'unknown'}"
+- Scraped brand: "${scraped.brand || 'unknown'}"
+- Scraped price: "${scraped.price || 'unknown'}"
 
-      // Build the item directly from scraped data (no AI cleanup step)
-      let brand = scraped.brand || '';
-      if (!brand || brand.length <= 3) {
+Use this to identify the item accurately. If the scraped price looks correct use it, otherwise estimate.
+
+Respond ONLY with a valid JSON object, no markdown:
+{
+  "brand": "Brand Name",
+  "name": "Item Name",
+  "retailPrice": 000,
+  "description": "one sentence description"
+}`;
+
+      const aiRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.3,
+        }),
+      });
+
+      const aiData = await aiRes.json();
+      const text = aiData.choices?.[0]?.message?.content || "";
+      const clean = text.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(clean);
+      if (!parsed.brand || parsed.brand.length <= 3) {
         try {
           const domain = new URL(url.trim()).hostname.replace('www.', '').split('.')[0];
-          brand = domain.charAt(0).toUpperCase() + domain.slice(1);
+          parsed.brand = domain.charAt(0).toUpperCase() + domain.slice(1);
         } catch { }
       }
-      brand = brand.replace(/\bactive\b/gi, '').trim();
-
-      const name = scraped.name || slug || 'Unknown Item';
-      const retailPrice = parseFloat(String(scraped.price || '').replace(/[^0-9.]/g, '')) || 0;
-
-      const parsed = {
-        brand,
-        name,
-        retailPrice,
-        description: '',
-        image: scraped.image || scraped.imageUrl || (scraped.images && scraped.images[0]) || null,
-      };
-
+      parsed.brand = parsed.brand.replace(/\bactive\b/gi, '').trim()
+      parsed.image = scraped.image || scraped.imageUrl || (scraped.images && scraped.images[0]) || null;
       console.log('Image URL:', parsed.image);
 
       updateResult(parsed);
@@ -124,7 +146,8 @@ export default function App() {
       const cleanBrand = parsed.brand.replace(/\bactive\b/gi, '').trim();
       const secondWord = nameWords.find(w => w.length > 2 && !colorWords.includes(w) && w !== firstWord) || '';
       const query = secondWord ? `${cleanBrand} ${firstWord} ${secondWord}` : `${cleanBrand} ${firstWord}`;
-      const rentalRes = await fetch(`${API_URL}/api/search?query=${encodeURIComponent(query)}&itemName=${encodeURIComponent(parsed.name)}&fullName=${encodeURIComponent(parsed.name)}&brand=${encodeURIComponent(cleanBrand)}`); const rentalData = await rentalRes.json();
+      const rentalRes = await fetch(`/api/search?query=${encodeURIComponent(query)}&itemName=${encodeURIComponent(parsed.name)}&fullName=${encodeURIComponent(parsed.name)}&brand=${encodeURIComponent(cleanBrand)}`);
+      const rentalData = await rentalRes.json();
       updateListings(rentalData.results || []);
 
       setProgress(100);

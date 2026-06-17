@@ -4,6 +4,8 @@ const searchHandler = require('./api/search.cjs');
 const scrapeHandler = require('./api/scrape.cjs');
 const app = express();
 const PORT = process.env.PORT || 3001;
+const cors = require('cors');
+app.use(cors());
 
 app.get('/api/search', searchHandler);
 app.get('/api/scrape', scrapeHandler);
