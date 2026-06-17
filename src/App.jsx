@@ -82,7 +82,7 @@ export default function App() {
     setProgress(5);
 
     const apiKey = import.meta.env.VITE_GROQ_API_KEY;
-    const API_URL = import.meta.env.VITE_API_URL || '';
+    const API_URL = '';
 
     try {
       setLoadingMsg("Reading product page…");
