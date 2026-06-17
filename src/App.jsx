@@ -82,7 +82,8 @@ export default function App() {
     try {
       setLoadingMsg("Reading product page…");
       setProgress(15);
-      const scrapeRes = await fetch(`/api/scrape?url=${encodeURIComponent(url.trim())}`);
+      const API_URL = import.meta.env.VITE_API_URL || '';
+      const scrapeRes = await fetch(`${API_URL}/api/scrape?url=${encodeURIComponent(url.trim())}`);
       const scraped = await scrapeRes.json();
       console.log('Scraped product:', scraped);
 
@@ -123,8 +124,7 @@ export default function App() {
       const cleanBrand = parsed.brand.replace(/\bactive\b/gi, '').trim();
       const secondWord = nameWords.find(w => w.length > 2 && !colorWords.includes(w) && w !== firstWord) || '';
       const query = secondWord ? `${cleanBrand} ${firstWord} ${secondWord}` : `${cleanBrand} ${firstWord}`;
-      const rentalRes = await fetch(`/api/search?query=${encodeURIComponent(query)}&itemName=${encodeURIComponent(parsed.name)}&fullName=${encodeURIComponent(parsed.name)}&brand=${encodeURIComponent(cleanBrand)}`);
-      const rentalData = await rentalRes.json();
+      const rentalRes = await fetch(`${API_URL}/api/search?query=${encodeURIComponent(query)}&itemName=${encodeURIComponent(parsed.name)}&fullName=${encodeURIComponent(parsed.name)}&brand=${encodeURIComponent(cleanBrand)}`); const rentalData = await rentalRes.json();
       updateListings(rentalData.results || []);
 
       setProgress(100);
