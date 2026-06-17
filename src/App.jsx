@@ -204,10 +204,10 @@ Respond ONLY with a valid JSON object, no markdown:
 
   return (
     <>
-      <span className="logo-link" onClick={() => navigate('/')}>Rent the Look</span>
       {showLogin && <LoginPage onClose={() => setShowLogin(false)} />}
       <div className="app">
         <div className="app-header">
+          <span className="logo-link" onClick={() => navigate('/')}>Rent the Look</span>
           {session
             ? <ProfileMenu session={session} />
             : <button className="login-btn" onClick={() => setShowLogin(true)}>Log In</button>
@@ -305,7 +305,7 @@ Respond ONLY with a valid JSON object, no markdown:
                     <div className="rental-grid">
                       {filteredListings.map((listing, i) => (
                         <div key={i} className="rental-card">
-                          <SaveButton item={listing} />
+                          <SaveButton item={{ ...listing, retailPrice: result.retailPrice }} />
                           <div className="site-name" style={{ color: siteColor[listing.site] || "#333" }}>{listing.site}</div>
                           <div className="listing-name">{listing.name}</div>
                           {listing.size && <div className="listing-meta">Size: {listing.size}</div>}

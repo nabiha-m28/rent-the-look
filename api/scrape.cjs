@@ -2,10 +2,8 @@ const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 puppeteer.use(StealthPlugin());
 require('dotenv').config();
-
 function extractStructuredData(html) {
     let price = null, name = null, brand = null, image = null;
-
     const jsonLdMatches = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi) || [];
     for (const script of jsonLdMatches) {
         try {
@@ -29,20 +27,16 @@ function extractStructuredData(html) {
             }
         } catch { }
     }
-
     if (!name) {
         const ogTitle = html.match(/<meta[^>]*property="og:title"[^>]*content="([^"]+)"/i);
         if (ogTitle) name = ogTitle[1];
     }
-
     const ogImage = html.match(/<meta[^>]*property="og:image"[^>]*content="([^"]+)"/i);
     if (ogImage) image = ogImage[1];
-
     if (!price) {
         const priceMatch = html.match(/"price"\s*:\s*"?([\d.]+)"?/);
         if (priceMatch) price = priceMatch[1];
     }
-
     return {
         price: price ? parseFloat(String(price).replace(/[^0-9.]/g, '')) : null,
         name: name ? name.trim() : null,
@@ -50,14 +44,12 @@ function extractStructuredData(html) {
         image: image ? image.trim().replace(/(?<!:)\/{2,}/g, '/') : null,
     };
 }
-
 function isBlocked(data) {
     if (!data.price && !data.brand) return true;
     const blockedPhrases = ['access denied', 'unusual activity', 'robot', 'captcha', 'forbidden', 'siteclosed'];
     if (data.name && blockedPhrases.some(p => data.name.toLowerCase().includes(p))) return true;
     return false;
 }
-
 async function scrapeWithPuppeteer(url) {
     let browser;
     try {
@@ -72,7 +64,6 @@ async function scrapeWithPuppeteer(url) {
         if (browser) await browser.close();
     }
 }
-
 async function scrapeWithZyte(url) {
     const apiKey = process.env.ZYTE_API_KEY;
     const response = await fetch('https://api.zyte.com/v1/extract', {
@@ -89,29 +80,23 @@ async function scrapeWithZyte(url) {
     const data = await response.json();
     return data.browserHtml || '';
 }
-
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     if (req.method === 'OPTIONS') return res.status(200).end();
-
     const { url } = req.query;
     if (!url) return res.status(400).json({ error: 'url param required' });
-
     console.log('Scraping:', url);
-
     try {
         console.log('Trying Puppeteer...');
         let html = await scrapeWithPuppeteer(url);
         let data = extractStructuredData(html);
-
         if (isBlocked(data)) {
             console.log('Puppeteer blocked, trying Zyte...');
             html = await scrapeWithZyte(url);
             data = extractStructuredData(html);
             console.log('Zyte result:', data);
         }
-
         console.log('Final:', data);
         res.status(200).json(data);
     } catch (e) {
@@ -119,3 +104,5 @@ module.exports = async (req, res) => {
         res.status(500).json({ error: e.message });
     }
 };
+
+

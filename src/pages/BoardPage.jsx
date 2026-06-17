@@ -201,9 +201,9 @@ function BoardPage() {
 
   return (
     <>
-      <span className="logo-link" onClick={() => navigate('/', { replace: true })}>Rent the Look</span>
       <div className="app-header-wrap">
         <div className="app-header">
+          <span className="logo-link" onClick={() => navigate('/', { replace: true })}>Rent the Look</span>
           <ProfileMenu session={session} />
         </div>
       </div>
@@ -250,6 +250,9 @@ function BoardPage() {
                     <div className="saved-item-price">
                       ${d.rentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       <span>/{d.period === 'month (for 6 items)' ? 'month' : 'week'}</span>
+                      {d.retailPrice > 0 && (
+                        <span className="savings"> · save ${(d.retailPrice - d.rentPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      )}
                     </div>
                   )}
                   <a href={d.url} target="_blank" rel="noopener noreferrer" className="view-link">

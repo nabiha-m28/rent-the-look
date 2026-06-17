@@ -148,9 +148,10 @@ function BoardsPage() {
 
     return (
         <>
-            <span className="logo-link" onClick={() => navigate('/', { replace: true })}>Rent the Look</span>
             <div className="app-header-wrap">
                 <div className="app-header">
+                    <span className="logo-link" onClick={() => navigate('/', { replace: true })}>Rent the Look</span>
+
                     <ProfileMenu session={session} />
                 </div>
             </div>
