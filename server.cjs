@@ -3,8 +3,10 @@ const express = require('express');
 const searchHandler = require('./api/search.cjs');
 const scrapeHandler = require('./api/scrape.cjs');
 const app = express();
+const PORT = process.env.PORT || 3001;
 
 app.get('/api/search', searchHandler);
 app.get('/api/scrape', scrapeHandler);
 
-app.listen(3001, () => console.log('API running on port 3001'));
+app.listen(PORT, () => console.log(`API running on port ${PORT}`));
+
