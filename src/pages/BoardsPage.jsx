@@ -89,9 +89,9 @@ function BoardsPage() {
 
     async function fetchBoards() {
         const { data: boardsData } = await supabase
-    .from('boards')
-    .select('*')
-    .order('last_added_at', { ascending: false });
+            .from('boards')
+            .select('*')
+            .order('last_added_at', { ascending: false });
 
         if (!boardsData) { setLoading(false); return; }
 

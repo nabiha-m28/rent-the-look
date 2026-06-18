@@ -165,9 +165,9 @@ function BoardPage() {
 
   async function moveItem(itemId, newBoardId) {
     await supabase.from('saved_items').update({ board_id: newBoardId }).eq('id', itemId);
-    await touchBoard(newBoardId);          // <-- new
+    await touchBoard(newBoardId);
     setItems(prev => prev.filter(i => i.id !== itemId));
-}
+  }
 
   async function moveToNewBoard(itemId, boardName) {
     const { data: { user } } = await supabase.auth.getUser();

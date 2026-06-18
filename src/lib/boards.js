@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 
 export async function touchBoard(boardId) {
-    await supabase.from('boards').update({ last_added_at: new Date().toISOString() }).eq('id', boardId);
+  await supabase.from('boards').update({ last_added_at: new Date().toISOString() }).eq('id', boardId);
 }
 
 async function getBoards() {
