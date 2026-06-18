@@ -1,6 +1,3 @@
-
-
-import { useState } from "react";
 import "./App.css";
 import useAuth from "./hooks/useAuth";
 import { signOut } from "./lib/auth";
@@ -8,6 +5,7 @@ import SaveButton from "./components/SaveButton";
 import ProfileMenu from "./components/ProfileMenu";
 import LoginPage from "./components/LoginPage";
 import { useNavigate } from "react-router-dom";
+import { useState, useRef } from "react";
 
 export default function App() {
   const session = useAuth();
@@ -46,6 +44,35 @@ export default function App() {
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [selectedSizeGroup, setSelectedSizeGroup] = useState("");
 
+  const progressInterval = useRef(null);
+
+  function startPhase1() {
+    setProgress(0);
+    clearInterval(progressInterval.current);
+    progressInterval.current = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 40) return prev;
+        return prev + 0.5;
+      });
+    }, 200);
+}
+
+function startPhase2() {
+    clearInterval(progressInterval.current);
+    setProgress(40);
+    progressInterval.current = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 95) return prev;
+        return prev + 0.5;
+      });
+    }, 250);
+}
+
+  function stopProgress() {
+    clearInterval(progressInterval.current);
+    setProgress(100);
+  }
+
   function updateResult(val) {
     setResult(val);
     if (val) sessionStorage.setItem('lastResult', JSON.stringify(val));
@@ -79,19 +106,17 @@ export default function App() {
     setError("");
     updateResult(null);
     updateListings([]);
-    setProgress(5);
+    startPhase1();
 
     const apiKey = import.meta.env.VITE_GROQ_API_KEY;
     const API_URL = '';
 
     try {
       setLoadingMsg("Reading product page…");
-      setProgress(15);
       const scrapeRes = await fetch(`${API_URL}/api/scrape?url=${encodeURIComponent(url.trim())}`); const scraped = await scrapeRes.json();
       console.log('Scraped product:', scraped);
 
       setLoadingMsg("Identifying item…");
-      setProgress(45);
       const slug = extractSlug(url.trim());
       const prompt = `You are a fashion assistant. Here is data scraped from a product page:
 - URL slug: "${slug}"
@@ -137,9 +162,9 @@ Respond ONLY with a valid JSON object, no markdown:
       console.log('Image URL:', parsed.image);
 
       updateResult(parsed);
+      startPhase2();
 
       setLoadingMsg("Searching rental sites…");
-      setProgress(75);
       const colorWords = ['off', 'off-white', 'white', 'black', 'red', 'blue', 'green', 'pink', 'yellow', 'orange', 'purple', 'brown', 'grey', 'gray', 'navy', 'cream', 'ivory', 'nude', 'beige', 'gold', 'silver', 'rose', 'coral', 'mint', 'lavender', 'lilac', 'olive', 'rust', 'tan', 'blush', 'mauve', 'teal', 'aqua', 'cobalt', 'emerald', 'burgundy', 'champagne', 'cognac', 'camel', 'leopard', 'stripe', 'striped', 'print', 'printed', 'pattern', 'patterned', 'floral'];
       const nameWords = parsed.name.toLowerCase().replace(/-/g, ' ').split(' ');
       const firstWord = nameWords.find(w => w.length > 2 && !colorWords.includes(w)) || nameWords[0];
@@ -148,16 +173,17 @@ Respond ONLY with a valid JSON object, no markdown:
       const query = secondWord ? `${cleanBrand} ${firstWord} ${secondWord}` : `${cleanBrand} ${firstWord}`;
       const rentalRes = await fetch(`${API_URL}/api/search?query=${encodeURIComponent(query)}&itemName=${encodeURIComponent(parsed.name)}&fullName=${encodeURIComponent(parsed.name)}&brand=${encodeURIComponent(cleanBrand)}`); const rentalData = await rentalRes.json();
       updateListings(rentalData.results || []);
+      stopProgress();
+      await new Promise(r => setTimeout(r, 700));
 
-      setProgress(100);
 
     } catch (e) {
       console.log('Error:', e);
+      stopProgress();
       setError("Couldn't identify this item. Try a direct product page URL.");
     } finally {
       setLoading(false);
       setLoadingMsg("");
-      setProgress(0);
     }
   }
 
@@ -258,7 +284,6 @@ Respond ONLY with a valid JSON object, no markdown:
             </select>
           </div>
 
-          {/* Progress bar before we have a result yet (reading/identifying) */}
           {loading && !result && (
             <div className="progress-wrap">
               <div className="progress-label">{loadingMsg}</div>
@@ -276,14 +301,15 @@ Respond ONLY with a valid JSON object, no markdown:
                 {result.image && (
                   <img src={result.image} alt={result.name} className="product-image" />
                 )}
-                <div className="brand">{result.brand}</div>
-                <h2>{result.name}</h2>
-                {result.retailPrice > 0 && (
-                  <div className="retail-price">${result.retailPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} retail</div>
-                )}
+                <div className="item-info">
+                  <div className="brand">{result.brand}</div>
+                  <h2>{result.name}</h2>
+                  {result.retailPrice > 0 && (
+                    <div className="retail-price">${result.retailPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} retail</div>
+                  )}
+                </div>
               </div>
 
-              {/* Progress bar continues here once we're searching rental sites */}
               {loading && (
                 <div className="progress-wrap">
                   <div className="progress-label">{loadingMsg}</div>

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import useAuth from '../hooks/useAuth';
 import LoginPage from './LoginPage';
+import { touchBoard } from '../lib/boards';
 
 function SaveButton({ item }) {
     const session = useAuth();
@@ -75,6 +76,7 @@ function SaveButton({ item }) {
     }
 
     async function handleSave(boardId) {
+        await touchBoard(boardId);
         const { data: { user } } = await supabase.auth.getUser();
         const { data } = await supabase.from('saved_items').insert({
             board_id: boardId,
@@ -114,6 +116,7 @@ function SaveButton({ item }) {
     }
 
     async function handleMove(boardId) {
+        await touchBoard(boardId);
         if (!savedItemId) return;
         await supabase.from('saved_items').update({ board_id: boardId }).eq('id', savedItemId);
         setCurrentBoardId(boardId);

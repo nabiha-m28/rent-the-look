@@ -3,6 +3,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import useAuth from '../hooks/useAuth';
 import ProfileMenu from "../components/ProfileMenu";
+import { touchBoard } from '../lib/boards';
 
 
 function BoardMenu({ board, onDelete, onRename }) {
@@ -164,8 +165,9 @@ function BoardPage() {
 
   async function moveItem(itemId, newBoardId) {
     await supabase.from('saved_items').update({ board_id: newBoardId }).eq('id', itemId);
+    await touchBoard(newBoardId);          // <-- new
     setItems(prev => prev.filter(i => i.id !== itemId));
-  }
+}
 
   async function moveToNewBoard(itemId, boardName) {
     const { data: { user } } = await supabase.auth.getUser();

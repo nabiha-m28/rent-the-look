@@ -29,13 +29,13 @@ body {
 
 .app {
   min-height: 100vh;
-  padding: 1.5rem 1rem;
+  padding: 0rem 0rem 1.5rem 0rem;
 }
 
 .container {
   max-width: 720px;
   margin: 0 auto;
-  padding-top: 3rem;
+  padding-top: 2.5rem;
 }
 
 header {
@@ -143,12 +143,20 @@ header p {
 }
 
 .item-card {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
 }
 
 .brand {
@@ -162,7 +170,7 @@ header p {
 
 .item-card h2 {
   font-family: 'Playfair Display', serif;
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   font-weight: 400;
   margin-bottom: 0.5rem;
 }
@@ -171,18 +179,12 @@ header p {
   width: 175px;
   max-height: 300px;
   border-radius: 12px;
-  margin-bottom: 4px;
-}
-
-.desc {
-  font-size: 0.875rem;
-  color: var(--muted);
-  line-height: 1.6;
-  margin-bottom: 0.75rem;
+  flex-shrink: 0;
+  margin-bottom: 0;
 }
 
 .retail-price {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 500;
   color: var(--text);
 }
@@ -263,8 +265,8 @@ header p {
 }
 
 .save-btn.saved {
-  background: #c7c7c9;
-  color: white;
+  background: var(--accent-light);
+  color: var(--muted);
   border-color: 1px solid #ddd;
 }
 
@@ -739,18 +741,20 @@ header p {
 }
 
 .app-header {
-  max-width: 1400px;
-  margin: 0 auto 0rem;
+  width: 100%;
+  padding: 0 36px;
+  box-sizing: border-box;
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 0.85rem;
   color: var(--muted);
-  height: 25px;
-}
-
-.app-header-wrap {
-  padding: 1.5rem 1rem 0;
+  height: 70px;
+  background: #F0EDE6;
+  border-bottom: 1px solid #ddd6c8;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
 .badge {
@@ -921,7 +925,7 @@ header p {
 .boards-page {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 42px 24px;
+  padding-top: 2.5rem;
 }
 
 .boards-header {
@@ -1091,7 +1095,7 @@ header p {
 .saved-items-grid {
   padding-top: 6px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(max(200px, calc((100% - 3 * 16px) / 4)), 1fr));
   gap: 16px;
 }
 
@@ -1226,7 +1230,7 @@ header p {
 
 .logo-link {
   font-family: 'Playfair Display', serif;
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 500;
   letter-spacing: -0.02em;
   cursor: pointer;
@@ -1234,5 +1238,5 @@ header p {
 }
 
 .logo-link:hover {
-  opacity: 0.7;
+  opacity: 0.8;
 }
