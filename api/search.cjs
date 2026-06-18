@@ -1,35 +1,3 @@
-const puppeteer = require('puppeteer-extra');
-const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-puppeteer.use(StealthPlugin());
-require('dotenv').config();
-
-const PROXY_SERVER = 'residential-proxy.scrapeops.io';
-const PROXY_PORT = '8181';
-const PROXY_USERNAME = 'scrapeops';
-const PROXY_PASSWORD = process.env.SCRAPEOPS_API_KEY;
-
-async function launchBrowserWithProxy() {
-  const browser = await puppeteer.launch({
-    headless: 'new',
-    ignoreHTTPSErrors: true,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      `--proxy-server=http://${PROXY_SERVER}:${PROXY_PORT}`,
-    ],
-  });
-  return browser;
-}
-
-async function newAuthenticatedPage(browser) {
-  const page = await browser.newPage();
-  await page.authenticate({
-    username: PROXY_USERNAME,
-    password: PROXY_PASSWORD,
-  });
-  return page;
-}
-
 const genericWords = ['dress', 'gown', 'top', 'skirt', 'pants', 'coat', 'jacket', 'blouse', 'shirt', 'shorts', 'jumpsuit', 'romper', 'set', 'suit', 'the', 'and', 'with', 'for'];
 const colorWords = ['off', 'white', 'off-white', 'black', 'red', 'blue', 'green', 'pink', 'yellow', 'orange', 'purple', 'brown', 'grey', 'gray', 'navy', 'cream', 'ivory', 'nude', 'beige', 'gold', 'silver', 'rose', 'coral', 'mint', 'lavender', 'lilac', 'olive', 'rust', 'tan', 'blush', 'mauve', 'teal', 'aqua', 'cobalt', 'emerald', 'burgundy', 'champagne', 'cognac', 'camel', 'leopard', 'stripe', 'striped', 'print', 'printed', 'pattern', 'patterned', 'floral'];
 
@@ -47,103 +15,84 @@ function buildShortQuery(query) {
   return keyWord ? `${brand} ${keyWord}` : query;
 }
 
-
-async function searchPickle(page, query, keyWord) {
-  await page.goto('https://www.shoponpickle.com/search', { waitUntil: 'networkidle2', timeout: 20000 });
-  await new Promise(r => setTimeout(r, 2000));
-  await page.focus('input[type="search"], input[type="text"], input[placeholder*="search" i]');
-  await page.keyboard.type(query);
-  await page.keyboard.press('Enter');
-  await new Promise(r => setTimeout(r, 6000));
-
-
-  const results = await page.evaluate(() => {
-    return Array.from(document.querySelectorAll('a[href*="/product/"]')).slice(0, 8).map(a => {
-      const text = a.innerText.trim();
-      const img = a.querySelector('img');
-      const rentMatch = text.match(/Rent\s*\$(\d+)/);
-      const retailMatch = text.match(/Orig\. Retail\s*\$([\d,]+)/);
-      const sizeMatch = text.match(/Size:\s*([^\n·]+)/);
-      const nameMatch = text.split('\n')[0];
-      return {
-        site: 'Pickle',
-        name: nameMatch || 'View listing',
-        image: img?.src || null,
-        size: sizeMatch ? sizeMatch[1].trim() : null,
-        rentPrice: rentMatch ? parseInt(rentMatch[1]) : null,
-        retailPrice: retailMatch ? parseInt(retailMatch[1].replace(',', '')) : null,
-        url: a.href,
-      };
-    });
-  });
-
-
-  if (keyWord) {
-    return results.filter(r => r.name.toLowerCase().includes(keyWord));
-  }
-  return results;
-}
-
-
-async function scrapePickle(browser, query, keyWord, itemName) {
-  const page = await newAuthenticatedPage(browser);
-  await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+async function scrapePickle(query, keyWord, itemName) {
   try {
-    await page.goto('https://api.ipify.org?format=json', { waitUntil: 'networkidle2', timeout: 15000 });
-    const ipCheck = await page.evaluate(() => document.body.innerText);
-    console.log('Pickle scraper proxy IP:', ipCheck);
-
-    const shortQuery = buildShortQuery(query);
-    const results1 = await searchPickle(page, query, null);
-    let results2 = [];
-    if (shortQuery.toLowerCase() !== query.toLowerCase()) {
-      await page.evaluate(() => { const input = document.querySelector('input[type="search"], input[type="text"]'); if (input) input.value = ''; });
-      results2 = await searchPickle(page, shortQuery, null);
-    }
-
-
-    const seen = new Set();
-    const merged = [...results1, ...results2].filter(r => {
-      if (seen.has(r.url)) return false;
-      seen.add(r.url);
-      return true;
+    const response = await fetch('https://api.shoponpickle.com/rpc/products/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': '*/*',
+      },
+      body: JSON.stringify({
+        json: {
+          searchText: query,
+          categoryIds: [],
+          subcategoryIds: [],
+          brandNames: [],
+          colors: [],
+          sizes: [],
+          offerType: [],
+          deliveryType: [],
+          priceRange: null,
+          availableNow: false,
+          topLender: false,
+          discountFilter: false,
+          discount50PlusFilter: false,
+          nearMe: false,
+          latitude: null,
+          longitude: null,
+          zipCodes: [],
+          rentalDateFrom: null,
+          rentalDateTo: null,
+          sort: 'recommended',
+          limit: 60,
+          nextToken: 0,
+        },
+      }),
     });
 
+    if (!response.ok) return [];
+    const data = await response.json();
+    const items = data.json?.items || [];
+    if (items.length === 0) return [];
 
     const searchWords = (itemName || query).toLowerCase()
       .replace(/-/g, ' ')
       .split(' ')
       .filter(w => w.length > 2 && !genericWords.includes(w) && !colorWords.includes(w));
 
-
     const requiredWord = searchWords[0];
     const secondaryWord = searchWords[1];
 
-
-    const scored = merged.map(r => {
-      const name = r.name.toLowerCase();
-      const hasRequired = name.includes(requiredWord);
+    const scored = items.map(item => {
+      const name = (item.title || '').toLowerCase();
+      const hasRequired = requiredWord ? name.includes(requiredWord) : true;
       const hasSecondary = secondaryWord ? name.includes(secondaryWord) : true;
+      const matches = searchWords.filter(w => name.includes(w)).length;
       const score = hasRequired && hasSecondary ? 2 : hasRequired ? 1 : 0;
-      return { ...r, score };
+      return { ...item, score, matches };
     });
 
+    scored.sort((a, b) => b.score - a.score || b.matches - a.matches);
+    const top = scored.filter(i => i.score === 2).slice(0, 3);
 
-    scored.sort((a, b) => b.score - a.score);
-    const top = scored.filter(r => r.score === 2).slice(0, 3);
-
-
-    await page.close();
-    return top;
+    return top.map(item => ({
+      site: 'Pickle',
+      name: item.title || item.brandName || 'View listing',
+      image: item.image || null,
+      size: item.size || null,
+      rentPrice: item.rentalPrice || null,
+      retailPrice: item.price || null,
+      url: `https://www.shoponpickle.com/product/${item.productId}`,
+    }));
   } catch (e) {
     console.log('Pickle error:', e.message);
-    await page.close();
     return [];
   }
 }
 
 
-async function scrapeRTR(browser, query, brand, itemName) {
+async function scrapeRTR(query, brand, itemName) {
   try {
     const designerId = (brand || '').toLowerCase()
       .replace(/\bactive\b/g, '')
@@ -153,9 +102,17 @@ async function scrapeRTR(browser, query, brand, itemName) {
 
 
     const res = await fetch(
-      `https://gateway.renttherunway.com/disco-search/api/v2/membership/products/catalog/designer?designerId=${designerId}&sortOptions=RECOMMENDED&itemOffset=0&itemLimit=40`,
-      { headers: { 'Accept': 'application/json' } }
-    );
+  `https://gateway.renttherunway.com/disco-search/api/v2/membership/products/catalog/designer?designerId=${designerId}&sortOptions=RECOMMENDED&itemOffset=0&itemLimit=40`,
+  {
+    headers: {
+      'Accept': 'application/json',
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Referer': 'https://www.renttherunway.com/',
+      'Origin': 'https://www.renttherunway.com',
+    }
+  }
+);
+console.log('RTR status:', res.status, designerId);
 
 
     if (!res.ok) return [];
@@ -260,7 +217,7 @@ async function scrapeRTR(browser, query, brand, itemName) {
 }
 
 
-async function scrapeNuuly(browser, query, brand, itemName) {
+async function scrapeNuuly(query, brand, itemName) {
   try {
     const apiKey = process.env.ZYTE_API_KEY;
     const cleanBrand = brand.replace(/\bactive\b/gi, '').trim();
@@ -438,13 +395,11 @@ module.exports = async (req, res) => {
   console.log('Searching:', query, '| keyword:', keyWord, '| itemType:', itemType, '| brand:', brand);
 
 
-  let browser;
   try {
-    browser = await launchBrowserWithProxy();
     const [pickle, rtr, nuuly] = await Promise.all([
-      scrapePickle(browser, query, keyWord, itemName),
-      scrapeRTR(browser, query, brand, itemName),
-      scrapeNuuly(browser, query, brand, itemName),
+      scrapePickle(query, keyWord, itemName),
+      scrapeRTR(query, brand, itemName),
+      scrapeNuuly(query, brand, itemName),
     ]);
 
 
@@ -465,8 +420,6 @@ module.exports = async (req, res) => {
   } catch (e) {
     console.log('Server error:', e.message);
     res.status(500).json({ error: e.message });
-  } finally {
-    if (browser) await browser.close();
   }
 };
 
