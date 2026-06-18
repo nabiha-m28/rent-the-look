@@ -1,12 +1,12 @@
 {
-  "functions": {
-    "api/search.cjs": {
-      "memory": 1024,
-      "maxDuration": 60
-    },
-    "api/scrape.cjs": {
-      "memory": 1024,
-      "maxDuration": 30
-    }
-  }
+  "builds": [
+    { "src": "api/scrape.cjs", "use": "@vercel/node" },
+    { "src": "api/search.cjs", "use": "@vercel/node" },
+    { "src": "package.json", "use": "@vercel/static-build", "config": { "distDir": "dist" } }
+  ],
+  "routes": [
+    { "src": "/api/scrape", "dest": "/api/scrape.cjs" },
+    { "src": "/api/search", "dest": "/api/search.cjs" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
 }
