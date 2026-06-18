@@ -1,6 +1,6 @@
 # Rent the Look
 
-A full-stack web app that converts retail product URLs into rental alternatives across Rent the Runway, Nuuly, and Pickle — with price comparisons, size filtering, and Pinterest-style boards for saving and organizing listings.
+A full-stack web app that converts retail product URLs into rental alternatives across Rent the Runway, Nuuly, and Pickle — with price comparisons, size filtering, and Pinterest-style boards for saving and organizing rental listings.
 
 ## Features
 
