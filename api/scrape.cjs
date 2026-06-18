@@ -1,5 +1,3 @@
-require('dotenv').config();
-
 function extractStructuredData(html) {
     let price = null, name = null, brand = null, image = null;
     const jsonLdMatches = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi) || [];
