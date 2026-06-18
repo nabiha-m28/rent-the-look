@@ -55,9 +55,9 @@ export default function App() {
         return prev + 0.5;
       });
     }, 200);
-}
+  }
 
-function startPhase2() {
+  function startPhase2() {
     clearInterval(progressInterval.current);
     setProgress(40);
     progressInterval.current = setInterval(() => {
@@ -66,7 +66,7 @@ function startPhase2() {
         return prev + 0.5;
       });
     }, 250);
-}
+  }
 
   function stopProgress() {
     clearInterval(progressInterval.current);
@@ -241,8 +241,7 @@ Respond ONLY with a valid JSON object, no markdown:
         </div>
         <div className="container">
           <header>
-            <p>Paste a product link and we'll find it on rental sites, matching your size and saving you the hassle of browsing multiple platforms.</p>
-          </header>
+            <p>Paste a product link and we'll find it or the closest match on rental sites, matching your size and saving you the hassle of browsing multiple platforms.</p>          </header>
 
           <div className="search-row">
             <input
@@ -332,25 +331,47 @@ Respond ONLY with a valid JSON object, no markdown:
                       {filteredListings.map((listing, i) => (
                         <div key={i} className="rental-card">
                           <SaveButton item={{ ...listing, retailPrice: result.retailPrice }} />
-                          <div className="site-name" style={{ color: siteColor[listing.site] || "#333" }}>{listing.site}</div>
-                          <div className="listing-name">{listing.name}</div>
-                          {listing.size && <div className="listing-meta">Size: {listing.size}</div>}
-                          {listing.availableSizes?.length > 0 && (
-                            <div className="listing-meta">Sizes: {listing.availableSizes.join(', ')}</div>
+                          {listing.image && (
+                            <img src={listing.image} alt={listing.name} className="rental-card-image" />
                           )}
-                          {listing.sizesNote && !listing.availableSizes?.length && (
-                            <div className="listing-meta">{listing.sizesNote}</div>
-                          )}
-                          {listing.rentPrice && (
-                            <div className="rental-price">
-                              ${listing.rentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}<span>/{listing.period === 'month (for 6 items)' ? 'month (for 6 items)' : 'week'}</span>
-                              {result.retailPrice > 0 && (
-                                <span className="savings"> · save ${(result.retailPrice - listing.rentPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>)}
-                            </div>
-                          )}
-                          <a href={listing.url} target="_blank" rel="noopener noreferrer" className="view-link">
-                            View on {listing.site} →
-                          </a>
+                          <div className="rental-card-body">
+                            <div className="site-name">{listing.site}</div>
+                            <div className="listing-name">{listing.name}</div>
+                            {listing.size && <div className="listing-meta">Size: {listing.size}</div>}
+                            {listing.availableSizes?.length > 0 && (
+                              <div className="listing-meta">Sizes: {listing.availableSizes.join(', ')}</div>
+                            )}
+                            {listing.sizesNote && !listing.availableSizes?.length && (
+                              <div className="listing-meta">{listing.sizesNote}</div>
+                            )}
+                            {listing.rentPrice && (
+                              <>
+                                {listing.rentPrice && (
+                                  <>
+                                    <div className="rental-price">
+                                      ${listing.rentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                      {listing.period === 'month (for 6 items)' ? (
+                                        <>
+                                          <span className="period-main">/month</span>
+                                          <span className="period-note"> (for 6 items)</span>
+                                        </>
+                                      ) : (
+                                        <span className="period-main">/week</span>
+                                      )}
+                                    </div>
+                                    {result.retailPrice > 0 && (
+                                      <div className="savings">
+                                        save ${(result.retailPrice - listing.rentPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                      </div>
+                                    )}
+                                  </>
+                                )}
+                              </>
+                            )}
+                            <a href={listing.url} target="_blank" rel="noopener noreferrer" className="view-link">
+                              View on {listing.site} →
+                            </a>
+                          </div>
                         </div>
                       ))}
                     </div>

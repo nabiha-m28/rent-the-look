@@ -54,6 +54,7 @@ function ProfileMenu({ session }) {
         <div className="profile-dropdown">
           {view === 'menu' ? (
             <>
+              <button onClick={() => { navigate('/'); setOpen(false); }}>Home</button>
               <button onClick={() => { navigate("/boards"); setOpen(false); }}>My Boards</button>
               <button onClick={() => setView('account')}>My Account</button>
               <button onClick={signOut}>Log Out</button>

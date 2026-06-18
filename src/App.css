@@ -225,14 +225,34 @@ header p {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 1.25rem;
+  padding: 2.1rem 1rem 1rem 1rem;
   position: relative;
   transition: border-color 0.15s, box-shadow 0.15s;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 1rem;
+  min-height: 160px;
 }
 
 .rental-card:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.rental-card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.rental-card-image {
+  width: 130px;
+  flex-shrink: 0;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 10px;
 }
 
 .save-button {
@@ -773,28 +793,27 @@ header p {
 .site-name {
   font-size: 0.8rem;
   font-weight: 500;
-  color: var(--muted);
+  color: var(--text);
   margin-bottom: 4px;
 }
 
 .rental-price {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   font-weight: 500;
   color: var(--text);
   margin-bottom: 4px;
 }
 
-.rental-price span {
+.period-main {
   font-size: 0.8rem;
   font-weight: 400;
   color: var(--muted);
 }
 
-.rental-note {
-  font-size: 0.78rem;
+.period-note {
+  font-size: 0.65rem;
   color: var(--muted);
-  line-height: 1.5;
-  margin-bottom: 0.75rem;
+  font-weight: 400;
 }
 
 .view-link {
@@ -835,9 +854,8 @@ header p {
 
 .listing-name {
   font-size: 0.875rem;
-  color: var(--text);
-  margin: 6px 0 10px;
-  line-height: 1.4;
+  color: var(--accent);
+  margin: 6px 0 4px;
 }
 
 .no-results {
@@ -864,8 +882,9 @@ header p {
 
 .savings {
   font-size: 0.75rem;
-  color: var(--accent);
+  color: var(--muted);
   font-weight: 400;
+  margin-bottom: 10px;
 }
 
 .progress-wrap {
