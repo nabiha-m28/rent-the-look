@@ -1,10 +1,10 @@
 {
   "functions": {
-    "api/search.cjs": {
+    "api/search.js": {
       "memory": 1024,
       "maxDuration": 60
     },
-    "api/scrape.cjs": {
+    "api/scrape.js": {
       "memory": 1024,
       "maxDuration": 30
     }

@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
-const searchHandler = require('./api/search.cjs');
-const scrapeHandler = require('./api/scrape.cjs');
+const searchHandler = require('./api/search.js');
+const scrapeHandler = require('./api/scrape.js');
 const app = express();
 const PORT = process.env.PORT || 3001;
 const cors = require('cors');
