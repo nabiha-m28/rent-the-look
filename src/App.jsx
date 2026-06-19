@@ -234,10 +234,15 @@ Respond ONLY with a valid JSON object, no markdown:
       <div className="app">
         <div className="app-header">
           <span className="logo-link" onClick={() => navigate('/')}>Rent the Look</span>
-          {session
-            ? <ProfileMenu session={session} />
-            : <button className="login-btn" onClick={() => setShowLogin(true)}>Log In</button>
-          }
+          {session ? (
+            <div className="header-nav">
+              <button className="nav-tab" onClick={() => navigate('/')}>Home</button>
+              <button className="nav-tab" onClick={() => navigate('/boards')}>My Boards</button>
+              <ProfileMenu session={session} />
+            </div>
+          ) : (
+            <button className="login-btn" onClick={() => setShowLogin(true)}>Log In</button>
+          )}
         </div>
         <div className="container">
           <header>

@@ -68,8 +68,11 @@ function BoardsPage() {
     const [menuOpen, setMenuOpen] = useState(false);
     const [newBoardName, setNewBoardName] = useState('');
     const menuRef = useRef(null);
-    const [boards, setBoards] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [boards, setBoards] = useState(() => {
+        const cached = sessionStorage.getItem('cachedBoards');
+        return cached ? JSON.parse(cached) : [];
+    });
+    const [loading, setLoading] = useState(() => !sessionStorage.getItem('cachedBoards'));
 
     useEffect(() => {
         if (!menuOpen) return;
@@ -108,6 +111,7 @@ function BoardsPage() {
         );
 
         setBoards(boardsWithCovers);
+        sessionStorage.setItem('cachedBoards', JSON.stringify(boardsWithCovers));
         setLoading(false);
     }
 
@@ -120,7 +124,11 @@ function BoardsPage() {
             .select();
         if (data) {
             const newBoard = { ...data[0], coverItems: [], totalCount: 0 };
-            setBoards(prev => [newBoard, ...prev]);
+            setBoards(prev => {
+                const updated = [newBoard, ...prev];
+                sessionStorage.setItem('cachedBoards', JSON.stringify(updated));
+                return updated;
+            });
             setNewBoardName('');
             setMenuOpen(false);
         }
@@ -128,17 +136,23 @@ function BoardsPage() {
 
     async function handleDelete(boardId) {
         const { error } = await supabase.from('boards').delete().eq('id', boardId);
-        if (error) {
-            console.error(error);
-            return;
-        }
-        setBoards(prev => prev.filter(b => b.id !== boardId));
+        if (error) { console.error(error); return; }
+        setBoards(prev => {
+            const updated = prev.filter(b => b.id !== boardId);
+            sessionStorage.setItem('cachedBoards', JSON.stringify(updated));
+            return updated;
+        });
     }
 
     function handleRename(boardId, newName) {
-        setBoards(prev => prev.map(b => b.id === boardId ? { ...b, name: newName } : b));
+        setBoards(prev => {
+            const updated = prev.map(b => b.id === boardId ? { ...b, name: newName } : b);
+            sessionStorage.setItem('cachedBoards', JSON.stringify(updated));
+            return updated;
+        });
     }
 
+    if (session === undefined) return null;
     if (!session) return (
         <div className="boards-empty">
             <p>Please log in to view your boards.</p>
@@ -151,8 +165,11 @@ function BoardsPage() {
             <div className="app-header-wrap">
                 <div className="app-header">
                     <span className="logo-link" onClick={() => navigate('/', { replace: true })}>Rent the Look</span>
-
-                    <ProfileMenu session={session} />
+                    <div className="header-nav">
+                        <button className="nav-tab" onClick={() => navigate('/')}>Home</button>
+                        <button className="nav-tab" onClick={() => navigate('/boards')}>My Boards</button>
+                        <ProfileMenu session={session} />
+                    </div>
                 </div>
             </div>
             <div className="boards-page">
@@ -178,13 +195,8 @@ function BoardsPage() {
                 ) : (
                     <div className="board-grid">
                         {boards.map(board => (
-                            <div key={board.id} className="board" onClick={async () => {
-                                const { data } = await supabase
-                                    .from('saved_items')
-                                    .select('*')
-                                    .eq('board_id', board.id)
-                                    .order('created_at', { ascending: false });
-                                navigate(`/boards/${board.id}`, { state: { name: board.name, items: data || [] } });
+                            <div key={board.id} className="board" onClick={() => {
+                                navigate(`/boards/${board.id}`, { state: { name: board.name, items: null } });
                             }}>
                                 <div className="board-cover">
                                     {board.coverItems[0]?.item_data?.image ? (

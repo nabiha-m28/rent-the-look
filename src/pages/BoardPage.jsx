@@ -135,12 +135,12 @@ function BoardPage() {
   const { state } = useLocation();
   const [board, setBoard] = useState(state?.name ? { name: state.name } : null);
   const [items, setItems] = useState(state?.items || []);
-  const [loading, setLoading] = useState(!state?.items);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!session) return;
     fetchBoard();
-    if (!state?.items) fetchItems();
+    fetchItems();
   }, [session, boardId]);
 
   async function fetchBoard() {
@@ -194,6 +194,7 @@ function BoardPage() {
     setBoard(prev => ({ ...prev, name: newName }));
   }
 
+  if (session === undefined) return null;
   if (!session) return (
     <div className="boards-empty">
       <p>Please log in to view your boards.</p>
@@ -206,7 +207,11 @@ function BoardPage() {
       <div className="app-header-wrap">
         <div className="app-header">
           <span className="logo-link" onClick={() => navigate('/', { replace: true })}>Rent the Look</span>
-          <ProfileMenu session={session} />
+          <div className="header-nav">
+            <button className="nav-tab" onClick={() => navigate('/')}>Home</button>
+            <button className="nav-tab" onClick={() => navigate('/boards')}>My Boards</button>
+            <ProfileMenu session={session} />
+          </div>
         </div>
       </div>
       <div className="boards-page">
@@ -221,9 +226,7 @@ function BoardPage() {
           )}
         </div>
 
-        {items.length === 0 ? (
-          <p className="select-prompt">No items saved to this board yet.</p>
-        ) : (
+        {items.length > 0 ? (
           <div className="saved-items-grid">
             {items.map(item => {
               const d = item.item_data;
@@ -264,7 +267,9 @@ function BoardPage() {
               );
             })}
           </div>
-        )}
+        ) : !loading ? (
+          <p className="select-prompt">No items saved to this board yet.</p>
+        ) : null}
       </div>
     </>
   );

@@ -620,7 +620,7 @@ header p {
   border: 1px solid #eee;
   border-radius: 10px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  min-width: 180px;
+  min-width: 125px;
   padding: 8px 0;
   z-index: 1001;
 }
@@ -651,6 +651,10 @@ header p {
 
 .profile-dropdown button:hover {
   background: #f5f5f5;
+}
+
+.profile-dropdown button:nth-of-type(2) {
+  color: var(--delete);
 }
 
 .login-overlay {
@@ -775,6 +779,30 @@ header p {
   top: 0;
   z-index: 100;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.nav-tab {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.nav-tab:hover {
+  color: var(--text);
+  background: var(--border);
 }
 
 .badge {
