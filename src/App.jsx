@@ -262,7 +262,7 @@ Respond ONLY with a valid JSON object, no markdown:
           <span className="logo-link" onClick={() => navigate('/')}>Rent the Look</span>
           {session ? (
             <div className="header-nav">
-              <button className="nav-tab" onClick={() => navigate('/')}>Home</button>
+              <button className="nav-tab" onClick={() => navigate('/')}>Search</button>
               <button className="nav-tab" onClick={() => navigate('/boards')}>My Boards</button>
               <ProfileMenu session={session} />
             </div>

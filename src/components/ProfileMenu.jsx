@@ -59,7 +59,7 @@ function ProfileMenu({ session }) {
             </>
           ) : (
             <>
-              <button className="back-btn" onClick={() => setView('menu')}>← Back</button>
+              <button className="back-btn" onClick={() => setView('menu')}>←</button>
               <div className="account-row"><span>{fullName || '—'}</span></div>
               <div className="account-row"><span>{session.user.email}</span></div>
               {memberSince && (

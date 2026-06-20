@@ -572,17 +572,23 @@ header p {
 }
 
 .login-btn {
-  background: var(--accent);
-  color: white;
+  background: none;
   border: none;
-  padding: 8px 14px;
-  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  border: none;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 0.8rem;
+  padding: 6px 10px;
+  transition: color 0.15s, background 0.15s;
 }
 
 .login-btn:hover {
-  opacity: 0.85;
+  color: var(--text);
+  background: var(--border);
 }
 
 .profile-menu {
@@ -621,22 +627,38 @@ header p {
   border: 1px solid #eee;
   border-radius: 10px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  min-width: 125px;
+  min-width: 130px;
   padding: 8px 0;
   z-index: 1001;
 }
 
 .back-btn {
-  color: #888;
-  font-size: 0.8rem;
-  margin-bottom: 4px;
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 14px;
+  padding: 0px 0px;
+  margin-left: 2px;
+  font-size: 0.70rem;
+  color: #555;
+  cursor: pointer;
+
+  width: 20px !important;
+  height: 20px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-btn:hover {
+  background: #f5f5f5;
 }
 
 .account-row {
   display: flex;
   justify-content: space-between;
   font-size: 0.85rem;
-  padding: 6px 8px;
+  padding: 6px 14px;
+  min-width: 190px;
 }
 
 .profile-dropdown button {
@@ -1124,20 +1146,6 @@ header p {
 
 .delete-board-btn-top:hover {
   background: #fff0f0;
-}
-
-.back-btn {
-  background: none;
-  border: 1px solid #ddd;
-  border-radius: 20px;
-  padding: 6px 14px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  color: #555;
-}
-
-.back-btn:hover {
-  background: #f5f5f5;
 }
 
 .select-prompt {

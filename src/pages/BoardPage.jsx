@@ -198,7 +198,7 @@ function BoardPage() {
   if (!session) return (
     <div className="boards-empty">
       <p>Please log in to view your boards.</p>
-      <button onClick={() => navigate('/')}>Go Home</button>
+      <button onClick={() => navigate('/')}>Go to Search</button>
     </div>
   );
 
@@ -208,7 +208,7 @@ function BoardPage() {
         <div className="app-header">
           <span className="logo-link" onClick={() => navigate('/', { replace: true })}>Rent the Look</span>
           <div className="header-nav">
-            <button className="nav-tab" onClick={() => navigate('/')}>Home</button>
+            <button className="nav-tab" onClick={() => navigate('/')}>Search</button>
             <button className="nav-tab" onClick={() => navigate('/boards')}>My Boards</button>
             <ProfileMenu session={session} />
           </div>
