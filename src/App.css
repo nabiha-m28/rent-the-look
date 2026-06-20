@@ -33,7 +33,7 @@ body {
 }
 
 .container {
-  max-width: 720px;
+  max-width: 800px;
   margin: 0 auto;
   padding-top: 2.5rem;
 }
@@ -225,7 +225,7 @@ header p {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 2.1rem 1rem 1rem 1rem;
+  padding: 2rem 1rem 1rem 1rem;
   position: relative;
   transition: border-color 0.15s, box-shadow 0.15s;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
@@ -257,20 +257,21 @@ header p {
 
 .save-button {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 10px;
+  right: 15px;
 }
 
 .save-btn {
   background: white;
   border: 1px solid #ddd;
   border-radius: 20px;
-  padding: 4px;
+  padding: 3px 0px;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
+  font-weight: 500;
   color: #333;
   transition: all 0.15s;
-  width: 60px;
+  width: 55px;
   text-align: center;
 }
 
@@ -839,7 +840,7 @@ header p {
 }
 
 .period-note {
-  font-size: 0.65rem;
+  font-size: 0.60rem;
   color: var(--muted);
   font-weight: 400;
 }
@@ -947,24 +948,30 @@ header p {
   margin: 6px 0;
 }
 
-.size-filter {
-  margin-bottom: 1rem;
+.filters-row {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
-.size-filter-label {
+.filter {
+  margin-bottom: 0.25rem;
+  align-items: center;
+  display: flex;
+}
+
+.filter-label {
   font-size: 0.85rem;
   color: var(--muted);
   display: block;
   margin-bottom: 0.5rem;
 }
 
-.size-dropdown {
+.filter-dropdown {
   padding: 8px 12px;
   border: 1px solid #ddd;
   border-radius: 8px;
-  margin-left: 0.5rem;
+  margin-left: 0.25rem;
   margin-bottom: 0.5rem;
   font-size: 0.80rem;
 }
@@ -1233,24 +1240,35 @@ header p {
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--accent);
+  margin-bottom: 0px;
 }
 
 .saved-item-meta {
   font-size: 0.8rem;
   color: #666;
+  margin-bottom: 4px;
 }
 
 .saved-item-price {
   font-size: 1rem;
   font-weight: 700;
   color: var(--accent);
-  margin-bottom: 6px;
+}
+
+.price-line {
+  margin-bottom: 4px;
 }
 
 .saved-item-price span {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 400;
   color: #666;
+}
+
+.saved-item-price .period-note-2 {
+  font-size: 0.6rem;
+  color: var(--muted);
+  font-weight: 400;
 }
 
 .boards-empty {

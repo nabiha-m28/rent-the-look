@@ -253,10 +253,43 @@ function BoardPage() {
                   )}
                   {d.rentPrice && (
                     <div className="saved-item-price">
-                      ${d.rentPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      <span>/{d.period === 'month (for 6 items)' ? 'month' : 'week'}</span>
+                      <div className="price-line">
+                        ${d.rentPrice.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
+
+                        {d.period === "month (for 6 items)" ? (
+                          <>
+                            <span className="period-main-2">/month</span>
+                            <span className="period-note-2"> (for 6 items)</span>
+                          </>
+                        ) : (
+                          <span className="period-main-2">/week</span>
+                        )}
+                      </div>
+
                       {d.retailPrice > 0 && (
-                        <span className="savings"> · save ${(d.retailPrice - d.rentPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        <div className="savings">
+                          {d.site === "Rent the Runway" ? (
+                            <>
+                              save $
+                              {d.retailPrice.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
+                              <span className="period-note-2"> (save more with subscription)</span>
+                            </>
+                          ) : (
+                            <>
+                              save $
+                              {(d.retailPrice - d.rentPrice).toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
+                            </>
+                          )}
+                        </div>
                       )}
                     </div>
                   )}

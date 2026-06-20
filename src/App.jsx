@@ -43,6 +43,8 @@ export default function App() {
   ];
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [selectedSizeGroup, setSelectedSizeGroup] = useState("");
+  const [selectedSites, setSelectedSites] = useState([]);
+  const [maxPrice, setMaxPrice] = useState("");
 
   const progressInterval = useRef(null);
 
@@ -206,12 +208,26 @@ Respond ONLY with a valid JSON object, no markdown:
       return [];
     })
   )].sort((a, b) => {
+    const aNum = Number(a);
+    const bNum = Number(b);
+
+    if (!isNaN(aNum) && !isNaN(bNum)) {
+      return aNum - bNum;
+    }
+
     const order = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+
     const ai = order.indexOf(a.toUpperCase());
     const bi = order.indexOf(b.toUpperCase());
-    if (ai !== -1 && bi !== -1) return ai - bi;
+
+    if (ai !== -1 && bi !== -1) {
+      return ai - bi;
+    }
+
     return a.localeCompare(b);
   });
+
+  const allSites = [...new Set(listings.map(l => l.site))].sort();
 
 
   function toggleSize(size) {
@@ -221,10 +237,20 @@ Respond ONLY with a valid JSON object, no markdown:
   }
 
   const filteredListings = sortedListings.filter(l => {
-    if (selectedSizes.length === 0) return true;
-    if (l.size) return selectedSizes.includes(l.size);
-    if (l.availableSizes?.length) return l.availableSizes.some(s => selectedSizes.includes(s));
-    return true;
+    const sizeMatch =
+      selectedSizes.length === 0 ||
+      (l.size && selectedSizes.includes(l.size)) ||
+      (l.availableSizes?.length && l.availableSizes.some(s => selectedSizes.includes(s)));
+
+    const siteMatch =
+      selectedSites.length === 0 ||
+      selectedSites.includes(l.site);
+
+    const priceMatch =
+      maxPrice === "" ||
+      (l.rentPrice && l.rentPrice <= Number(maxPrice));
+
+    return sizeMatch && siteMatch && priceMatch;
   });
 
 
@@ -261,31 +287,70 @@ Respond ONLY with a valid JSON object, no markdown:
             </button>
           </div>
 
-          <div className="size-filter">
-            <span className="size-filter-label">Filter by size (optional):</span>
-            <select className="size-dropdown"
-              value={selectedSizeGroup}
-              onChange={(e) => {
-                const value = e.target.value;
-                setSelectedSizeGroup(value);
+          <div className="filters-row">
+            <div className="filter">
+              <span className="filter-label">Size:</span>
+              <select className="filter-dropdown"
+                value={selectedSizeGroup}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setSelectedSizeGroup(value);
 
-                if (value === "") {
-                  setSelectedSizes([]);
-                  return;
-                }
+                  if (value === "") {
+                    setSelectedSizes([]);
+                    return;
+                  }
 
-                const group = SIZE_GROUPS.find(g => g.label === value);
-                setSelectedSizes(group ? group.values : []);
-              }}
-            >
-              <option value="">All sizes</option>
+                  const group = SIZE_GROUPS.find(g => g.label === value);
+                  setSelectedSizes(group ? group.values : []);
+                }}
+              >
+                <option value="">All sizes</option>
 
-              {SIZE_GROUPS.map(group => (
-                <option key={group.label} value={group.label}>
-                  {group.label}
-                </option>
-              ))}
-            </select>
+                {SIZE_GROUPS.map(group => (
+                  <option key={group.label} value={group.label}>
+                    {group.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="filter">
+              <span className="filter-label">Price:</span>
+
+              <select
+                className="filter-dropdown"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+              >
+                <option value="">All prices</option>
+                <option value="50">Under $50</option>
+                <option value="75">Under $75</option>
+                <option value="100">Under $100</option>
+                <option value="300">Under $300</option>
+              </select>
+            </div>
+
+            <div className="filter">
+              <span className="filter-label">Site:</span>
+
+              <select
+                className="filter-dropdown"
+                value={selectedSites[0] || ""}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setSelectedSites(value ? [value] : []);
+                }}
+              >
+                <option value="">All sites</option>
+
+                {allSites.map(site => (
+                  <option key={site} value={site}>
+                    {site}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {loading && !result && (
@@ -344,7 +409,13 @@ Respond ONLY with a valid JSON object, no markdown:
                             <div className="listing-name">{listing.name}</div>
                             {listing.size && <div className="listing-meta">Size: {listing.size}</div>}
                             {listing.availableSizes?.length > 0 && (
-                              <div className="listing-meta">Sizes: {listing.availableSizes.join(', ')}</div>
+                              <div className="listing-meta">
+                                Sizes: {
+                                  [...listing.availableSizes]
+                                    .sort((a, b) => Number(a) - Number(b))
+                                    .join(', ')
+                                }
+                              </div>
                             )}
                             {listing.sizesNote && !listing.availableSizes?.length && (
                               <div className="listing-meta">{listing.sizesNote}</div>
@@ -366,7 +437,24 @@ Respond ONLY with a valid JSON object, no markdown:
                                     </div>
                                     {result.retailPrice > 0 && (
                                       <div className="savings">
-                                        save ${(result.retailPrice - listing.rentPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        {listing.site === "Rent the Runway" ? (
+                                          <>
+                                            save $
+                                            {result.retailPrice.toLocaleString(undefined, {
+                                              minimumFractionDigits: 2,
+                                              maximumFractionDigits: 2,
+                                            })}
+                                            <span className="period-note"> (save more with subscription)</span>
+                                          </>
+                                        ) : (
+                                          <>
+                                            save $
+                                            {(result.retailPrice - listing.rentPrice).toLocaleString(undefined, {
+                                              minimumFractionDigits: 2,
+                                              maximumFractionDigits: 2,
+                                            })}
+                                          </>
+                                        )}
                                       </div>
                                     )}
                                   </>
