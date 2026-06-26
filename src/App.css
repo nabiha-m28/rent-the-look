@@ -18,9 +18,9 @@
   --border-two: #E7DFD2;
   --border-strong: #D8CCB8;
   --accent: #1a1a2e;
-  --accent-light: #e8e8f0;
-  --accent-light-two: #ECE9F4;
-  --accent-light-three: #D9D4EC;
+  --accent-light: #f6f2ec;
+  --accent-light-two: #efe7dd;
+  --accent-light-three: #e4d8c8;
   --accent-hover: #3a3a58;
   --delete: #c0392b;
   --rose-light: #F7E7DD;
@@ -59,19 +59,22 @@ header h1 {
   font-weight: 400;
   letter-spacing: -0.02em;
   color: var(--text);
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
+  text-align: center;
 }
 
 header p {
-  font-size: 1rem;
+  font-size: 0.90rem;
   color: var(--muted);
   font-weight: 300;
+  text-align: center;
+  margin-bottom: 1.5rem;
 }
 
 .search-row {
   display: flex;
   gap: 8px;
-  margin-bottom: 0.75rem;
+  margin-bottom: .75rem;
 }
 
 .search-row input {
@@ -118,6 +121,28 @@ header p {
   opacity: 0.5;
 }
 
+.clear-btn {
+  position: absolute;
+  right: 4px;
+  top: -10px;
+  background: transparent;
+  border: none;
+  color: #666;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 0;
+  z-index: 2;
+}
+
+.clear-btn:hover {
+  color: #111;
+}
+
+.clear-btn:active {
+  transform: scale(0.98);
+}
+
 .example-row {
   display: flex;
   align-items: center;
@@ -159,10 +184,10 @@ header p {
   align-items: center;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 1.5rem;
+  border-radius: 20px;
+  padding: 1.25rem 1.5rem;
   margin-bottom: 1.5rem;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
 .item-info {
@@ -236,7 +261,7 @@ header p {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 2rem 1rem 1rem 1rem;
+  padding: 1.5rem 1rem 1rem 1rem;
   position: relative;
   transition: border-color 0.15s, box-shadow 0.15s;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
@@ -288,12 +313,6 @@ header p {
 
 .save-btn:hover {
   background: #f0f0f0;
-}
-
-.save-btn.saved {
-  background: var(--accent-light-two);
-  color: var(--accent);
-  border: 1px solid #C9C5DC;
 }
 
 .save-btn.saved {
@@ -596,22 +615,21 @@ header p {
 }
 
 .login-btn {
-  background: var(--accent-light);
-  border: 1px solid var(--border-strong);
-  color: var(--muted);
+  background: transparent;
+  border: 1.5px solid var(--border-strong);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
   font-size: 0.85rem;
   font-weight: 500;
-  text-underline-offset: 3px;
   border-radius: 999px;
   cursor: pointer;
-  padding: 6px 10px;
-  transition: background 0.15s ease, color 0.15s ease, transform 0.12s ease
+  padding: 5px 14px;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
 }
 
 .login-btn:hover {
-  color: var(--text);
-  background: var(--accent-light-three);
-  border-color: var(--border-strong);
+  background: var(--accent-light-two);
+  border-color: var(--accent-light-three);
   transform: translateY(-1px);
 }
 
@@ -864,7 +882,7 @@ header p {
 
 .nav-tab:hover {
   color: var(--text);
-  background: var(--accent-light);
+  background: var(--accent-light-two);
 }
 
 .badge {
@@ -1016,8 +1034,10 @@ header p {
 
 .filters-row {
   display: flex;
+  align-items: center;
+  gap: 16px;
   flex-wrap: wrap;
-  gap: 1rem;
+  position: relative;
 }
 
 .filter {
@@ -1366,7 +1386,7 @@ header p {
 
 .logo-link {
   font-family: 'Playfair Display', serif;
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 500;
   letter-spacing: -0.02em;
   cursor: pointer;

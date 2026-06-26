@@ -45,9 +45,29 @@ export default function App() {
   const [selectedSizeGroup, setSelectedSizeGroup] = useState("");
   const [selectedSites, setSelectedSites] = useState([]);
   const [maxPrice, setMaxPrice] = useState("");
+  const SITE_ORDER = ["Pickle", "Nuuly", "Rent the Runway"];
 
   const progressInterval = useRef(null);
 
+  const hasSearched = result !== null;
+
+  function clearSearch() {
+    updateUrl("");
+    updateResult(null);
+    updateListings([]);
+
+    setSelectedSizes([]);
+    setSelectedSizeGroup("");
+    setSelectedSites([]);
+    setMaxPrice("");
+
+    setError("");
+    setProgress(0);
+
+    sessionStorage.removeItem("lastUrl");
+    sessionStorage.removeItem("lastResult");
+    sessionStorage.removeItem("lastListings");
+  }
   function startPhase1() {
     setProgress(0);
     clearInterval(progressInterval.current);
@@ -227,8 +247,20 @@ Respond ONLY with a valid JSON object, no markdown:
     return a.localeCompare(b);
   });
 
-  const allSites = [...new Set(listings.map(l => l.site))].sort();
+  const allSites = Array.from(
+    new Set([
+      ...SITE_ORDER,
+      ...listings.map(l => l.site)
+    ])
+  ).sort((a, b) => {
+    const aIndex = SITE_ORDER.indexOf(a);
+    const bIndex = SITE_ORDER.indexOf(b);
 
+    const aRank = aIndex === -1 ? 999 : aIndex;
+    const bRank = bIndex === -1 ? 999 : bIndex;
+
+    return aRank - bRank || a.localeCompare(b);
+  });
 
   function toggleSize(size) {
     setSelectedSizes(prev =>
@@ -272,7 +304,8 @@ Respond ONLY with a valid JSON object, no markdown:
         </div>
         <div className="container">
           <header>
-            <p>Paste a product link and we'll find it or the closest match on rental sites, matching your size and saving you the hassle of browsing multiple platforms.</p>          </header>
+            <h1>Rent the Look</h1>
+            <p><i>Paste a product link and we'll find it or the closest match on rental sites, <br />matching your size and saving you the hassle of browsing multiple platforms.</i></p>          </header>
 
           <div className="search-row">
             <input
@@ -351,6 +384,12 @@ Respond ONLY with a valid JSON object, no markdown:
                 ))}
               </select>
             </div>
+
+            {hasSearched && (
+              <button className="clear-btn" onClick={clearSearch}>
+                Clear Search
+              </button>
+            )}
           </div>
 
           {loading && !result && (
