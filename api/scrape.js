@@ -9,12 +9,23 @@ export default async function handler(req, res) {
   console.log('Scraping:', url);
 
   try {
+    console.time('zyte-fetch');
     const html = await scrapeWithZyte(url);
+    console.timeEnd('zyte-fetch');
+    console.log('HTML size:', html.length);
+
+    console.time('extract');
     const data = extractStructuredData(html);
+    console.timeEnd('extract');
+
     console.log('Final:', data);
     res.status(200).json(data);
   } catch (e) {
     console.log('Error:', e.message);
+    // Distinguish a timeout from other errors so the frontend can show a clear message
+    if (e.name === 'AbortError') {
+      return res.status(504).json({ error: 'Scrape timed out — try a different product link.' });
+    }
     res.status(500).json({ error: e.message });
   }
 }
@@ -62,16 +73,46 @@ function extractStructuredData(html) {
   };
 }
 
-async function scrapeWithZyte(url) {
+async function scrapeWithZyte(url, { timeoutMs = 40000 } = {}) {
   const apiKey = process.env.ZYTE_API_KEY;
-  const response = await fetch('https://api.zyte.com/v1/extract', {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Basic ' + Buffer.from(apiKey + ':').toString('base64'),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ url, browserHtml: true }),
-  });
-  const data = await response.json();
-  return data.browserHtml || '';
+
+  // First attempt: fast plain-HTML fetch (no browser rendering).
+  // Most product pages have JSON-LD / og: tags in the raw HTML, so this
+  // usually succeeds in 1-3 seconds instead of 10-40+ for a rendered page.
+  try {
+    const fastHtml = await fetchZyte(url, apiKey, { browserHtml: false, timeoutMs: 12000 });
+    if (fastHtml && /application\/ld\+json|og:title|og:image/i.test(fastHtml)) {
+      console.log('Fast path succeeded (no browser rendering needed)');
+      return fastHtml;
+    }
+  } catch (e) {
+    console.log('Fast path failed, falling back to browserHtml:', e.message);
+  }
+
+  // Fallback: full headless-browser render, but capped so we always fail
+  // well before Vercel's own 60s hard limit kicks in.
+  return fetchZyte(url, apiKey, { browserHtml: true, timeoutMs });
+}
+
+async function fetchZyte(url, apiKey, { browserHtml, timeoutMs }) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch('https://api.zyte.com/v1/extract', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Basic ' + Buffer.from(apiKey + ':').toString('base64'),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ url, browserHtml }),
+      signal: controller.signal,
+    });
+    const data = await response.json();
+    return data.browserHtml || data.httpResponseBody
+      ? (data.browserHtml || Buffer.from(data.httpResponseBody, 'base64').toString('utf-8'))
+      : '';
+  } finally {
+    clearTimeout(timer);
+  }
 }
