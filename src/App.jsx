@@ -163,7 +163,7 @@ Respond ONLY with a valid JSON object, no markdown:
           "Authorization": `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
+          model: "openai/gpt-oss-20b",
           messages: [{ role: "user", content: prompt }],
           temperature: 0.3,
         }),
