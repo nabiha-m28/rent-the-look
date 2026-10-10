@@ -1,5 +1,15 @@
+import { fetchPage } from './_fetcher.js';
+
 const genericWords = ['dress', 'gown', 'top', 'skirt', 'pants', 'coat', 'jacket', 'blouse', 'shirt', 'shorts', 'jumpsuit', 'romper', 'set', 'suit', 'the', 'and', 'with', 'for'];
 const colorWords = ['off', 'white', 'off-white', 'black', 'red', 'blue', 'green', 'pink', 'yellow', 'orange', 'purple', 'brown', 'grey', 'gray', 'navy', 'cream', 'ivory', 'nude', 'beige', 'gold', 'silver', 'rose', 'coral', 'mint', 'lavender', 'lilac', 'olive', 'rust', 'tan', 'blush', 'mauve', 'teal', 'aqua', 'cobalt', 'emerald', 'burgundy', 'champagne', 'cognac', 'camel', 'leopard', 'stripe', 'striped', 'print', 'printed', 'pattern', 'patterned', 'floral'];
+
+// Headers Nuuly's JSON API expects.
+const NUULY_HEADERS = {
+  'Accept': 'application/json, text/plain, */*',
+  'x-urbn-channel': 'rental-web-cx',
+  'x-urbn-country': 'US',
+  'x-urbn-region': 'NY',
+};
 
 function getKeyWord(query) {
   const words = query.toLowerCase().split(' ').filter(w => w.length > 2);
@@ -106,22 +116,24 @@ async function scrapeRTR(query, brand, itemName) {
     scored.sort((a, b) => b.score - a.score || b.matches - a.matches);
     const top = scored.filter(i => i.score === 2).slice(0, 3);
 
-    const apiKey = process.env.ZYTE_API_KEY;
     const results = await Promise.all(top.map(async (item) => {
       const retailPrice = item.price?.find(p => p.id === 'msrp')?.value || null;
       let rentPrice = null;
       try {
-        const resp = await fetch('https://api.zyte.com/v1/extract', {
-          method: 'POST',
-          headers: {
-            'Authorization': 'Basic ' + Buffer.from(apiKey + ':').toString('base64'),
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ url: item.pdpUrl, browserHtml: true }),
-        });
-        const data = await resp.json();
-        const html = data.browserHtml || '';
-        const match = html.match(/"id":"rental","value":([\d.]+)/);
+        // The rental price is only in the product page's embedded JSON, so fetch the page.
+        // Try without rendering first (cheaper); only render if the price isn't there.
+        const rentalRe = /"id":"rental","value":([\d.]+)/;
+        let html = '';
+        try {
+          html = await fetchPage(item.pdpUrl, { render: false, timeoutMs: 15000 });
+        } catch (e) {
+          console.log('RTR plain fetch failed:', e.message);
+        }
+        let match = html.match(rentalRe);
+        if (!match) {
+          html = await fetchPage(item.pdpUrl, { render: true, timeoutMs: 30000 });
+          match = html.match(rentalRe);
+        }
         if (match) rentPrice = Math.round(parseFloat(match[1]));
       } catch (e) {
         console.log('RTR price fetch error:', e.message);
@@ -174,8 +186,7 @@ async function scrapeRTR(query, brand, itemName) {
 
 async function scrapeNuuly(query, brand, itemName) {
   try {
-    const apiKey = process.env.ZYTE_API_KEY;
-    const cleanBrand = brand.replace(/\bactive\b/gi, '').trim();
+    const cleanBrand = (brand || '').replace(/\bactive\b/gi, '').trim();
 
     const searchWords = (itemName || '').toLowerCase()
       .replace(/-/g, ' ').replace(/[^a-z\s]/g, '').split(' ')
@@ -187,28 +198,13 @@ async function scrapeNuuly(query, brand, itemName) {
     const searchQuery = `${cleanBrand} ${searchTerms}`.trim();
     const searchUrl = `https://www.nuuly.com/api/catalog/v2/search?inStock=true&q=${encodeURIComponent(searchQuery)}&pageNumber=1&itemsPerPage=100`;
 
-    const response = await fetch('https://api.zyte.com/v1/extract', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Basic ' + Buffer.from(apiKey + ':').toString('base64'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        url: searchUrl,
-        httpResponseBody: true,
-        customHttpRequestHeaders: [
-          { name: 'Accept', value: 'application/json, text/plain, */*' },
-          { name: 'x-urbn-channel', value: 'rental-web-cx' },
-          { name: 'x-urbn-country', value: 'US' },
-          { name: 'x-urbn-region', value: 'NY' },
-        ],
-      }),
+    // tryDirectFirst: these are plain JSON APIs, so a direct request is free if it works.
+    // If Nuuly blocks it, fetchPage falls back to ScraperAPI automatically.
+    const jsonText = await fetchPage(searchUrl, {
+      headers: NUULY_HEADERS,
+      tryDirectFirst: true,
+      timeoutMs: 30000,
     });
-
-    const data = await response.json();
-    if (!data.httpResponseBody) return [];
-
-    const jsonText = Buffer.from(data.httpResponseBody, 'base64').toString('utf-8');
     const json = JSON.parse(jsonText);
     const products = json.products || [];
     if (products.length === 0) return [];
@@ -243,47 +239,31 @@ async function scrapeNuuly(query, brand, itemName) {
 
       try {
         const apiUrl = `https://www.nuuly.com/api/product/slug/${slug}?excludeFromRecentlyViewed=false&view=rent`;
-        const resp = await fetch('https://api.zyte.com/v1/extract', {
-          method: 'POST',
-          headers: {
-            'Authorization': 'Basic ' + Buffer.from(apiKey + ':').toString('base64'),
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            url: apiUrl,
-            httpResponseBody: true,
-            customHttpRequestHeaders: [
-              { name: 'Accept', value: 'application/json, text/plain, */*' },
-              { name: 'x-urbn-channel', value: 'rental-web-cx' },
-              { name: 'x-urbn-country', value: 'US' },
-              { name: 'x-urbn-region', value: 'NY' },
-            ],
-          }),
+        const jsonText2 = await fetchPage(apiUrl, {
+          headers: NUULY_HEADERS,
+          tryDirectFirst: true,
+          timeoutMs: 30000,
         });
-        const pageData = await resp.json();
-        if (pageData.httpResponseBody) {
-          const jsonText2 = Buffer.from(pageData.httpResponseBody, 'base64').toString('utf-8');
-          const json2 = JSON.parse(jsonText2);
-          const choices = json2.choices || [];
-          listings = choices.map(c => {
-            const skus = c.sizeGroups?.[0]?.includedSkus || [];
-            const availableSizes = skus
-              .filter(sku => sku.availableInventory > 0)
-              .map(sku => sku.size.displayName)
-              .filter((v, i, arr) => arr.indexOf(v) === i);
-            const colorCode = c.color?.code || '';
-            const colorName = c.color?.displayName || '';
-            return {
-              site: 'Nuuly',
-              name: colorName ? `${product.displayName} (${colorName})` : product.displayName,
-              url: colorCode ? `${url}?color=${colorCode}` : url,
-              image: product.images?.[0] || null,
-              rentPrice: 98,
-              period: 'month (for 6 items)',
-              availableSizes,
-            };
-          }).filter(l => l.availableSizes.length > 0);
-        }
+        const json2 = JSON.parse(jsonText2);
+        const choices = json2.choices || [];
+        listings = choices.map(c => {
+          const skus = c.sizeGroups?.[0]?.includedSkus || [];
+          const availableSizes = skus
+            .filter(sku => sku.availableInventory > 0)
+            .map(sku => sku.size.displayName)
+            .filter((v, i, arr) => arr.indexOf(v) === i);
+          const colorCode = c.color?.code || '';
+          const colorName = c.color?.displayName || '';
+          return {
+            site: 'Nuuly',
+            name: colorName ? `${product.displayName} (${colorName})` : product.displayName,
+            url: colorCode ? `${url}?color=${colorCode}` : url,
+            image: product.images?.[0] || null,
+            rentPrice: 98,
+            period: 'month (for 6 items)',
+            availableSizes,
+          };
+        }).filter(l => l.availableSizes.length > 0);
       } catch (e) {
         console.log('Nuuly size fetch error:', e.message);
       }

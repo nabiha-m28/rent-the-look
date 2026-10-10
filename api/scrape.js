@@ -1,3 +1,5 @@
+import { fetchPage } from './_fetcher.js';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -9,9 +11,9 @@ export default async function handler(req, res) {
   console.log('Scraping:', url);
 
   try {
-    console.time('zyte-fetch');
-    const html = await scrapeWithZyte(url);
-    console.timeEnd('zyte-fetch');
+    console.time('fetch');
+    const html = await scrapeProductPage(url);
+    console.timeEnd('fetch');
     console.log('HTML size:', html.length);
 
     console.time('extract');
@@ -73,46 +75,21 @@ function extractStructuredData(html) {
   };
 }
 
-async function scrapeWithZyte(url, { timeoutMs = 40000 } = {}) {
-  const apiKey = process.env.ZYTE_API_KEY;
-
-  // First attempt: fast plain-HTML fetch (no browser rendering).
+async function scrapeProductPage(url, { timeoutMs = 40000 } = {}) {
+  // First attempt: plain fetch (no JS rendering, 1 credit on standard sites).
   // Most product pages have JSON-LD / og: tags in the raw HTML, so this
-  // usually succeeds in 1-3 seconds instead of 10-40+ for a rendered page.
+  // usually succeeds quickly instead of waiting on a rendered page.
   try {
-    const fastHtml = await fetchZyte(url, apiKey, { browserHtml: false, timeoutMs: 12000 });
+    const fastHtml = await fetchPage(url, { render: false, timeoutMs: 15000 });
     if (fastHtml && /application\/ld\+json|og:title|og:image/i.test(fastHtml)) {
-      console.log('Fast path succeeded (no browser rendering needed)');
+      console.log('Fast path succeeded (no rendering needed)');
       return fastHtml;
     }
   } catch (e) {
-    console.log('Fast path failed, falling back to browserHtml:', e.message);
+    console.log('Fast path failed, falling back to render:', e.message);
   }
 
-  // Fallback: full headless-browser render, but capped so we always fail
-  // well before Vercel's own 60s hard limit kicks in.
-  return fetchZyte(url, apiKey, { browserHtml: true, timeoutMs });
-}
-
-async function fetchZyte(url, apiKey, { browserHtml, timeoutMs }) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const response = await fetch('https://api.zyte.com/v1/extract', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Basic ' + Buffer.from(apiKey + ':').toString('base64'),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ url, browserHtml }),
-      signal: controller.signal,
-    });
-    const data = await response.json();
-    return data.browserHtml || data.httpResponseBody
-      ? (data.browserHtml || Buffer.from(data.httpResponseBody, 'base64').toString('utf-8'))
-      : '';
-  } finally {
-    clearTimeout(timer);
-  }
+  // Fallback: JS rendering, capped so we always fail well before
+  // Vercel's own 60s hard limit kicks in.
+  return fetchPage(url, { render: true, timeoutMs });
 }
