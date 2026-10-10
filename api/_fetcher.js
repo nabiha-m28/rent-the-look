@@ -1,8 +1,3 @@
-// Shared page fetcher. All ScraperAPI-specific logic lives here, so switching
-// providers later means editing only this file.
-//
-// The leading underscore keeps Vercel from exposing this file as an /api route.
-
 const SCRAPER_URL = 'https://api.scraperapi.com/';
 
 async function request(url, init, timeoutMs) {
@@ -10,25 +5,13 @@ async function request(url, init, timeoutMs) {
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetch(url, { ...init, signal: controller.signal });
-    const text = await res.text(); // timer still running, so slow bodies abort too
+    const text = await res.text();
     return { ok: res.ok, status: res.status, contentType: res.headers.get('content-type') || '', text };
   } finally {
     clearTimeout(timer);
   }
 }
 
-/**
- * Fetch a URL through ScraperAPI and return the response body as text.
- *
- * @param {string} url
- * @param {object}  opts
- * @param {boolean} opts.render         Render JavaScript in a headless browser (costs more credits).
- * @param {boolean} opts.premium        Use premium residential proxies (costs more credits).
- * @param {object}  opts.headers        Custom headers to forward to the target site.
- * @param {boolean} opts.tryDirectFirst Try a plain request first (free); only use ScraperAPI if it fails.
- *                                      Only accepted when the direct response is JSON.
- * @param {number}  opts.timeoutMs      Abort after this long. Throws an error named 'AbortError'.
- */
 export async function fetchPage(
   url,
   { render = false, premium = false, headers = null, tryDirectFirst = false, timeoutMs = 40000 } = {}

@@ -3,7 +3,6 @@ import { fetchPage } from './_fetcher.js';
 const genericWords = ['dress', 'gown', 'top', 'skirt', 'pants', 'coat', 'jacket', 'blouse', 'shirt', 'shorts', 'jumpsuit', 'romper', 'set', 'suit', 'the', 'and', 'with', 'for'];
 const colorWords = ['off', 'white', 'off-white', 'black', 'red', 'blue', 'green', 'pink', 'yellow', 'orange', 'purple', 'brown', 'grey', 'gray', 'navy', 'cream', 'ivory', 'nude', 'beige', 'gold', 'silver', 'rose', 'coral', 'mint', 'lavender', 'lilac', 'olive', 'rust', 'tan', 'blush', 'mauve', 'teal', 'aqua', 'cobalt', 'emerald', 'burgundy', 'champagne', 'cognac', 'camel', 'leopard', 'stripe', 'striped', 'print', 'printed', 'pattern', 'patterned', 'floral'];
 
-// Headers Nuuly's JSON API expects.
 const NUULY_HEADERS = {
   'Accept': 'application/json, text/plain, */*',
   'x-urbn-channel': 'rental-web-cx',
@@ -120,8 +119,6 @@ async function scrapeRTR(query, brand, itemName) {
       const retailPrice = item.price?.find(p => p.id === 'msrp')?.value || null;
       let rentPrice = null;
       try {
-        // The rental price is only in the product page's embedded JSON, so fetch the page.
-        // Try without rendering first (cheaper); only render if the price isn't there.
         const rentalRe = /"id":"rental","value":([\d.]+)/;
         let html = '';
         try {
@@ -198,8 +195,6 @@ async function scrapeNuuly(query, brand, itemName) {
     const searchQuery = `${cleanBrand} ${searchTerms}`.trim();
     const searchUrl = `https://www.nuuly.com/api/catalog/v2/search?inStock=true&q=${encodeURIComponent(searchQuery)}&pageNumber=1&itemsPerPage=100`;
 
-    // tryDirectFirst: these are plain JSON APIs, so a direct request is free if it works.
-    // If Nuuly blocks it, fetchPage falls back to ScraperAPI automatically.
     const jsonText = await fetchPage(searchUrl, {
       headers: NUULY_HEADERS,
       tryDirectFirst: true,

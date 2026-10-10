@@ -24,7 +24,6 @@ export default async function handler(req, res) {
     res.status(200).json(data);
   } catch (e) {
     console.log('Error:', e.message);
-    // Distinguish a timeout from other errors so the frontend can show a clear message
     if (e.name === 'AbortError') {
       return res.status(504).json({ error: 'Scrape timed out — try a different product link.' });
     }
@@ -76,9 +75,6 @@ function extractStructuredData(html) {
 }
 
 async function scrapeProductPage(url, { timeoutMs = 40000 } = {}) {
-  // First attempt: plain fetch (no JS rendering, 1 credit on standard sites).
-  // Most product pages have JSON-LD / og: tags in the raw HTML, so this
-  // usually succeeds quickly instead of waiting on a rendered page.
   try {
     const fastHtml = await fetchPage(url, { render: false, timeoutMs: 15000 });
     if (fastHtml && /application\/ld\+json|og:title|og:image/i.test(fastHtml)) {
@@ -88,8 +84,6 @@ async function scrapeProductPage(url, { timeoutMs = 40000 } = {}) {
   } catch (e) {
     console.log('Fast path failed, falling back to render:', e.message);
   }
-
-  // Fallback: JS rendering, capped so we always fail well before
-  // Vercel's own 60s hard limit kicks in.
+  
   return fetchPage(url, { render: true, timeoutMs });
 }
