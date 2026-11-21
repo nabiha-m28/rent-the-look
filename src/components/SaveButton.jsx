@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import useAuth from '../hooks/useAuth';
 import LoginPage from './LoginPage';
 import { touchBoard } from '../lib/boards';
+import { Bookmark, BookmarkCheck } from "lucide-react";
 
 function SaveButton({ item }) {
     const session = useAuth();
@@ -143,8 +144,10 @@ function SaveButton({ item }) {
             <button
                 className={`save-btn ${showPicker && !saved ? 'active' : ''} ${saved ? 'saved' : ''}`}
                 onClick={handleSaveClick}
+                title={saved ? 'Saved' : 'Save'}
+                aria-label={saved ? 'Saved' : 'Save'}
             >
-                {saved ? 'Saved' : 'Save'}
+                {saved ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
             </button>
 
             {showLogin && (

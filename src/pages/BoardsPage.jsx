@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import useAuth from '../hooks/useAuth';
 import ProfileMenu from "../components/ProfileMenu";
+import { Search, Bookmark } from "lucide-react";
 
 function BoardMenu({ board, onDelete, onRename }) {
     const [open, setOpen] = useState(false);
@@ -166,8 +167,12 @@ function BoardsPage() {
                 <div className="app-header">
                     <span className="logo-link" onClick={() => navigate('/', { replace: true })}>Rent the Look</span>
                     <div className="header-nav">
-                        <button className="nav-tab" onClick={() => navigate('/')}>Search</button>
-                        <button className="nav-tab" onClick={() => navigate('/boards')}>My Boards</button>
+                        <button className="nav-tab" onClick={() => navigate('/')} title="Search" aria-label="Search">
+                <Search size={20} />
+              </button>
+              <button className="nav-tab" onClick={() => navigate('/boards')} title="My Boards" aria-label="My Boards">
+                <Bookmark size={20} />
+              </button>
                         <ProfileMenu session={session} />
                     </div>
                 </div>
@@ -178,14 +183,14 @@ function BoardsPage() {
                     <div className="board-menu" ref={menuRef}>
                         <button className="board-menu-btn" onClick={() => setMenuOpen(prev => !prev)}>···</button>
                         {menuOpen && (
-                            <div className="board-menu-dropdown-2">
+                            <div className="board-picker">
                                 <input
                                     value={newBoardName}
                                     onChange={e => setNewBoardName(e.target.value)}
                                     placeholder="New board name"
                                     onKeyDown={e => e.key === 'Enter' && handleCreate()}
                                 />
-                                <button onClick={handleCreate}>Create</button>
+                                <button className="create-save-btn" onClick={handleCreate}>Create</button>
                             </div>
                         )}
                     </div>

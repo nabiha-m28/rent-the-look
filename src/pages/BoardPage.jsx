@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import useAuth from '../hooks/useAuth';
 import ProfileMenu from "../components/ProfileMenu";
 import { touchBoard } from '../lib/boards';
+import { Search, Bookmark } from "lucide-react";
 
 
 function BoardMenu({ board, onDelete, onRename }) {
@@ -208,8 +209,12 @@ function BoardPage() {
         <div className="app-header">
           <span className="logo-link" onClick={() => navigate('/', { replace: true })}>Rent the Look</span>
           <div className="header-nav">
-            <button className="nav-tab" onClick={() => navigate('/')}>Search</button>
-            <button className="nav-tab" onClick={() => navigate('/boards')}>My Boards</button>
+            <button className="nav-tab" onClick={() => navigate('/')} title="Search" aria-label="Search">
+                <Search size={20} />
+              </button>
+              <button className="nav-tab" onClick={() => navigate('/boards')} title="My Boards" aria-label="My Boards">
+                <Bookmark size={20} />
+              </button>
             <ProfileMenu session={session} />
           </div>
         </div>
