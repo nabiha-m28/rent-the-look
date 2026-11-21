@@ -1817,3 +1817,9 @@ header p {
   width: 100%;
   gap: 8px;
 }
+
+.board-picker.rename-picker {
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 200;
+}

@@ -42,26 +42,23 @@ function BoardMenu({ board, onDelete, onRename }) {
           return !prev;
         });
       }}>···</button>
-      {open && (
-        <div className="board-menu-dropdown">
-          {renaming ? (
-            <div className="board-rename-row">
-              <input
-                autoFocus
-                value={newName}
-                onChange={e => setNewName(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleRename()}
-              />
-              <button onClick={handleRename}>Save</button>
-            </div>
-          ) : (
-            <>
-              <button onClick={() => setRenaming(true)}>Rename board</button>
-              <button className="delete-option" onClick={() => { onDelete(); setOpen(false); }}>Delete board</button>
-            </>
-          )}
+            {open && (renaming ? (
+        <div className="board-picker rename-picker">
+          <input
+            autoFocus
+            value={newName}
+            onChange={e => setNewName(e.target.value)}
+            placeholder="Board name"
+            onKeyDown={e => e.key === 'Enter' && handleRename()}
+          />
+          <button className="create-save-btn" onClick={handleRename}>Save</button>
         </div>
-      )}
+      ) : (
+        <div className="board-menu-dropdown">
+          <button onClick={() => setRenaming(true)}>Rename board</button>
+          <button className="delete-option" onClick={() => { onDelete(); setOpen(false); }}>Delete board</button>
+        </div>
+      ))}
     </div>
   );
 }
