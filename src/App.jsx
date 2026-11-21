@@ -188,7 +188,7 @@ Respond ONLY with a valid JSON object, no markdown:
       updateResult(parsed);
       startPhase2();
 
-      setLoadingMsg("Searching rental sites…");
+      setLoadingMsg("Searching rental platforms...");
       const colorWords = ['off', 'off-white', 'white', 'black', 'red', 'blue', 'green', 'pink', 'yellow', 'orange', 'purple', 'brown', 'grey', 'gray', 'navy', 'cream', 'ivory', 'nude', 'beige', 'gold', 'silver', 'rose', 'coral', 'mint', 'lavender', 'lilac', 'olive', 'rust', 'tan', 'blush', 'mauve', 'teal', 'aqua', 'cobalt', 'emerald', 'burgundy', 'champagne', 'cognac', 'camel', 'leopard', 'stripe', 'striped', 'print', 'printed', 'pattern', 'patterned', 'floral'];
       const nameWords = parsed.name.toLowerCase().replace(/-/g, ' ').split(' ');
       const firstWord = nameWords.find(w => w.length > 2 && !colorWords.includes(w)) || nameWords[0];
@@ -337,7 +337,7 @@ Respond ONLY with a valid JSON object, no markdown:
       </div>
 
       <div className="filter">
-        <span className="filter-label">Site:</span>
+        <span className="filter-label">Platform:</span>
         <select
           className="filter-dropdown"
           value={selectedSites[0] || ""}
@@ -346,7 +346,7 @@ Respond ONLY with a valid JSON object, no markdown:
             setSelectedSites(value ? [value] : []);
           }}
         >
-          <option value="">All sites</option>
+          <option value="">All platforms</option>
           {allSites.map(site => (
             <option key={site} value={site}>{site}</option>
           ))}
@@ -379,7 +379,7 @@ Respond ONLY with a valid JSON object, no markdown:
           {!hasSearched && (
             <header>
               <h1>Rent the Look</h1>
-              <p><i>Paste a product link and we'll find it or the closest match on rental sites, <br />matching your size and saving you the hassle of browsing multiple platforms.</i></p>
+              <p><i>Paste a product link and we'll find it or the closest match on rental platforms, <br />matching your size and saving you the hassle of browsing multiple platforms.</i></p>
             </header>
           )}
 
@@ -471,7 +471,7 @@ Respond ONLY with a valid JSON object, no markdown:
                   </div>
 
                   <div className="filter">
-                    <span className="filter-label">Site:</span>
+                    <span className="filter-label">Platforms:</span>
                     <select
                       className="filter-dropdown"
                       value={selectedSites[0] || ""}
@@ -480,7 +480,7 @@ Respond ONLY with a valid JSON object, no markdown:
                         setSelectedSites(value ? [value] : []);
                       }}
                     >
-                      <option value="">All sites</option>
+                      <option value="">All platforms</option>
                       {allSites.map(site => (
                         <option key={site} value={site}>{site}</option>
                       ))}
