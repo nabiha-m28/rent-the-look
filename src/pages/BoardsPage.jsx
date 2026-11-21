@@ -39,7 +39,7 @@ function BoardMenu({ board, onDelete, onRename }) {
                     return !prev;
                 });
             }}>···</button>
-                        {open && (renaming ? (
+            {open && (renaming ? (
                 <div className="board-picker rename-picker">
                     <input
                         autoFocus
@@ -165,11 +165,11 @@ function BoardsPage() {
                     <span className="logo-link" onClick={() => navigate('/', { replace: true })}>Rent the Look</span>
                     <div className="header-nav">
                         <button className="nav-tab" onClick={() => navigate('/')} title="Search" aria-label="Search">
-                <Search size={20} />
-              </button>
-              <button className="nav-tab" onClick={() => navigate('/boards')} title="My Boards" aria-label="My Boards">
-                <Bookmark size={20} />
-              </button>
+                            <Search size={20} />
+                        </button>
+                        <button className="nav-tab" onClick={() => navigate('/boards')} title="My Boards" aria-label="My Boards">
+                            <Bookmark size={20} />
+                        </button>
                         <ProfileMenu session={session} />
                     </div>
                 </div>

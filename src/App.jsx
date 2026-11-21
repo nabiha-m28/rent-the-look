@@ -534,7 +534,9 @@ Respond ONLY with a valid JSON object, no markdown:
                               </div>
                               <div className="product-meta">
                                 <span className="product-site">{l.site}</span>
-                                <h3 className="product-name">{l.name}</h3>
+                                <h3 className="product-name">
+                                  <a className="card-link" href={l.url} target="_blank" rel="noopener noreferrer">{l.name}</a>
+                                </h3>
 
                                 {(l.size || l.availableSizes?.length > 0) && (
                                   <div className="product-sizes">

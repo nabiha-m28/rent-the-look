@@ -866,7 +866,7 @@ header p {
   gap: 14px;
 }
 
-.header-nav .nav-tab + .nav-tab {
+.header-nav .nav-tab+.nav-tab {
   margin-left: -6px;
 }
 
@@ -1568,7 +1568,7 @@ header p {
   background: var(--accent-light);
 }
 
-.product-media > a {
+.product-media>a {
   display: block;
   width: 100%;
   height: 100%;
@@ -1725,8 +1725,13 @@ header p {
   transition: background 0.15s;
 }
 
-.filter:last-child { border-right: none; }
-.filter:hover { background: var(--accent-light); }
+.filter:last-child {
+  border-right: none;
+}
+
+.filter:hover {
+  background: var(--accent-light);
+}
 
 /* small uppercase label on top */
 .filter-label {
@@ -1753,16 +1758,35 @@ header p {
   color: var(--muted);
   box-shadow: none;
 }
-.filter-dropdown:focus { outline: none; box-shadow: none; }
+
+.filter-dropdown:focus {
+  outline: none;
+  box-shadow: none;
+}
 
 /* a filter that has a value picked */
-.filter.active .filter-dropdown { color: var(--text); font-weight: 500; }
-.filter.active { box-shadow: inset 0 -2px 0 var(--text); }
+.filter.active .filter-dropdown {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.filter.active {
+  box-shadow: inset 0 -2px 0 var(--text);
+}
 
 @media (max-width: 600px) {
-  .filters-row { flex-direction: column; }
-  .filter { border-right: none; border-bottom: 1px solid var(--border-strong); }
-  .filter:last-child { border-bottom: none; }
+  .filters-row {
+    flex-direction: column;
+  }
+
+  .filter {
+    border-right: none;
+    border-bottom: 1px solid var(--border-strong);
+  }
+
+  .filter:last-child {
+    border-bottom: none;
+  }
 }
 
 .board-menu-dropdown,
@@ -1822,4 +1846,63 @@ header p {
   top: calc(100% + 8px);
   right: 0;
   z-index: 200;
+}
+
+.product-card {
+  overflow: visible;
+}
+
+.product-media,
+.product-media>a {
+  border-radius: 20px 20px 0 0;
+}
+
+.product-media .pin-menu-wrapper {
+  top: 10px;
+  right: 10px;
+  z-index: 5;
+}
+
+.product-media .pin-menu-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  background: #fff;
+  font-size: 1rem;
+}
+
+.product-media .pin-menu-btn:hover {
+  background: var(--accent-light);
+}
+
+.product-media .board-menu-dropdown,
+.product-media .board-picker {
+  z-index: 30;
+}
+
+.card-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.card-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: 20px;
+}
+
+.product-card:hover .product-name {
+  text-decoration: underline;
+}
+
+.product-card {
+  cursor: pointer;
+}
+
+.product-media .save-button,
+.product-media .pin-menu-wrapper {
+  z-index: 5;
 }

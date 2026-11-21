@@ -42,7 +42,7 @@ function BoardMenu({ board, onDelete, onRename }) {
           return !prev;
         });
       }}>···</button>
-            {open && (renaming ? (
+      {open && (renaming ? (
         <div className="board-picker rename-picker">
           <input
             autoFocus
@@ -207,11 +207,11 @@ function BoardPage() {
           <span className="logo-link" onClick={() => navigate('/', { replace: true })}>Rent the Look</span>
           <div className="header-nav">
             <button className="nav-tab" onClick={() => navigate('/')} title="Search" aria-label="Search">
-                <Search size={20} />
-              </button>
-              <button className="nav-tab" onClick={() => navigate('/boards')} title="My Boards" aria-label="My Boards">
-                <Bookmark size={20} />
-              </button>
+              <Search size={20} />
+            </button>
+            <button className="nav-tab" onClick={() => navigate('/boards')} title="My Boards" aria-label="My Boards">
+              <Bookmark size={20} />
+            </button>
             <ProfileMenu session={session} />
           </div>
         </div>
@@ -229,76 +229,47 @@ function BoardPage() {
         </div>
 
         {items.length > 0 ? (
-          <div className="saved-items-grid">
+          <div className="product-grid">
             {items.map(item => {
               const d = item.item_data;
+              const saved = d.retailPrice > 0 && d.rentPrice ? d.retailPrice - d.rentPrice : null;
               return (
-                <div key={item.id} className="saved-item-card">
-                  <div className="pin-menu-wrapper">
-                    <PinMenu
-                      itemId={item.id}
-                      currentBoardId={boardId}
-                      onDelete={deleteItem}
-                      onMove={moveItem}
-                      onMoveToNew={moveToNewBoard}
-                    />
-                  </div>
-                  {d.image ? <img src={d.image} alt={d.name} /> : <div className="saved-item-no-image">{d.site}</div>}
-                  <div className="saved-item-site">{d.site}</div>
-                  <div className="saved-item-name">{d.name}</div>
-                  {d.size && <div className="saved-item-meta">Size: {d.size}</div>}
-                  {d.availableSizes?.length > 0 && (
-                    <div className="saved-item-meta">Sizes: {d.availableSizes.join(', ')}</div>
-                  )}
-                  {d.sizesNote && !d.availableSizes?.length && (
-                    <div className="saved-item-meta">{d.sizesNote}</div>
-                  )}
-                  {d.rentPrice && (
-                    <div className="saved-item-price">
-                      <div className="price-line">
-                        ${d.rentPrice.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-
-                        {d.period === "month (for 6 items)" ? (
-                          <>
-                            <span className="period-main-2">/month</span>
-                            <span className="period-note-2"> (for 6 items)</span>
-                          </>
-                        ) : (
-                          <span className="period-main-2">/week</span>
-                        )}
-                      </div>
-
-                      {d.retailPrice > 0 && (
-                        <div className="savings">
-                          {d.site === "Rent the Runway" ? (
-                            <>
-                              save $
-                              {d.retailPrice.toLocaleString(undefined, {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              })}
-                              <span className="period-note-2"> (save more with subscription)</span>
-                            </>
-                          ) : (
-                            <>
-                              save $
-                              {(d.retailPrice - d.rentPrice).toLocaleString(undefined, {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              })}
-                            </>
-                          )}
-                        </div>
-                      )}
+                <article key={item.id} className="product-card">
+                  <div className="product-media">
+                    <a href={d.url} target="_blank" rel="noopener noreferrer">
+                      {d.image
+                        ? <img src={d.image} alt={d.name} loading="lazy" />
+                        : <div className="img-fallback" />}
+                    </a>
+                    <div className="pin-menu-wrapper">
+                      <PinMenu
+                        itemId={item.id}
+                        currentBoardId={boardId}
+                        onDelete={deleteItem}
+                        onMove={moveItem}
+                        onMoveToNew={moveToNewBoard}
+                      />
                     </div>
-                  )}
-                  <a href={d.url} target="_blank" rel="noopener noreferrer" className="view-link">
-                    View on {d.site} →
+                  </div>
+                  <a className="product-meta" href={d.url} target="_blank" rel="noopener noreferrer">
+                    <span className="product-site">{d.site}</span>
+                    <h3 className="product-name">
+                      <a className="card-link" href={d.url} target="_blank" rel="noopener noreferrer">{d.name}</a>
+                    </h3>
+                    {d.rentPrice && (
+                      <div className="product-price">
+                        ${d.rentPrice.toFixed(2)}
+                        <span>{d.period === "month (for 6 items)" ? " /mo (6 items)" : " /wk"}</span>
+                      </div>
+                    )}
+                    {saved > 0 && <div className="product-savings">Save ${saved.toFixed(0)} vs retail</div>}
+                    {(d.size || d.availableSizes?.length > 0) && (
+                      <div className="product-sizes">
+                        {d.size ? `Size ${d.size}` : `Sizes ${d.availableSizes.join(", ")}`}
+                      </div>
+                    )}
                   </a>
-                </div>
+                </article>
               );
             })}
           </div>
