@@ -251,24 +251,30 @@ function BoardPage() {
                       />
                     </div>
                   </div>
-                  <a className="product-meta" href={d.url} target="_blank" rel="noopener noreferrer">
+                  <div className="product-meta" href={d.url} target="_blank" rel="noopener noreferrer">
                     <span className="product-site">{d.site}</span>
-                    <h3 className="product-name">
-                      <a className="card-link" href={d.url} target="_blank" rel="noopener noreferrer">{d.name}</a>
-                    </h3>
+
+                    <h3 className="product-name">{d.name}</h3>
+
+                    {(d.size || d.availableSizes?.length > 0) && (
+                      <div className="product-sizes">
+                        {d.size ? `Size ${d.size}` : `Sizes ${d.availableSizes.join(", ")}`}
+                      </div>
+                    )}
+
                     {d.rentPrice && (
                       <div className="product-price">
                         ${d.rentPrice.toFixed(2)}
                         <span>{d.period === "month (for 6 items)" ? " /mo (6 items)" : " /wk"}</span>
                       </div>
                     )}
-                    {saved > 0 && <div className="product-savings">Save ${saved.toFixed(0)} vs retail</div>}
-                    {(d.size || d.availableSizes?.length > 0) && (
-                      <div className="product-sizes">
-                        {d.size ? `Size ${d.size}` : `Sizes ${d.availableSizes.join(", ")}`}
+
+                    {saved > 0 && (
+                      <div className="product-savings">
+                        Save ${saved.toFixed(0)} vs retail
                       </div>
                     )}
-                  </a>
+                  </div>
                 </article>
               );
             })}

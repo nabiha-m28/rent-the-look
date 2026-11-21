@@ -1906,3 +1906,41 @@ header p {
 .product-media .pin-menu-wrapper {
   z-index: 5;
 }
+
+.pin-menu .board-picker,
+.pin-menu .board-menu-dropdown {
+  top: calc(100% + 8px);
+  right: 0;
+}
+
+.board-picker {
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+.board-picker::-webkit-scrollbar {
+  width: 8px;
+}
+
+.board-picker::-webkit-scrollbar-track {
+  background: var(--accent-light-two);
+  border-radius: 8px;
+  margin: 8px 0;
+}
+
+.board-picker::-webkit-scrollbar-thumb {
+  background: #b9b0a2;
+  border-radius: 8px;
+}
+
+.board-picker::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-two);
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  .board-picker {
+    scrollbar-width: thin;
+    scrollbar-color: #b9b0a2 var(--accent-light-two);
+  }
+}
