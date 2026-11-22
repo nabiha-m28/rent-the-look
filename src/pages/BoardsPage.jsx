@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import useAuth from '../hooks/useAuth';
 import ProfileMenu from "../components/ProfileMenu";
+import { Search, Bookmark } from "lucide-react";
 
 function BoardMenu({ board, onDelete, onRename }) {
     const [open, setOpen] = useState(false);
@@ -38,26 +39,23 @@ function BoardMenu({ board, onDelete, onRename }) {
                     return !prev;
                 });
             }}>···</button>
-            {open && (
-                <div className="board-menu-dropdown">
-                    {renaming ? (
-                        <div className="board-rename-row">
-                            <input
-                                autoFocus
-                                value={newName}
-                                onChange={e => setNewName(e.target.value)}
-                                onKeyDown={e => e.key === 'Enter' && handleRename()}
-                            />
-                            <button onClick={handleRename}>Save</button>
-                        </div>
-                    ) : (
-                        <>
-                            <button onClick={() => setRenaming(true)}>Rename board</button>
-                            <button className="delete-option" onClick={() => { onDelete(board.id); setOpen(false); }}>Delete board</button>
-                        </>
-                    )}
+            {open && (renaming ? (
+                <div className="board-picker rename-picker">
+                    <input
+                        autoFocus
+                        value={newName}
+                        onChange={e => setNewName(e.target.value)}
+                        placeholder="Board name"
+                        onKeyDown={e => e.key === 'Enter' && handleRename()}
+                    />
+                    <button className="create-save-btn" onClick={handleRename}>Save</button>
                 </div>
-            )}
+            ) : (
+                <div className="board-menu-dropdown">
+                    <button onClick={() => setRenaming(true)}>Rename board</button>
+                    <button className="delete-option" onClick={() => { onDelete(board.id); setOpen(false); }}>Delete board</button>
+                </div>
+            ))}
         </div>
     );
 }
@@ -162,30 +160,20 @@ function BoardsPage() {
 
     return (
         <>
-            <div className="app-header-wrap">
-                <div className="app-header">
-                    <span className="logo-link" onClick={() => navigate('/', { replace: true })}>Rent the Look</span>
-                    <div className="header-nav">
-                        <button className="nav-tab" onClick={() => navigate('/')}>Search</button>
-                        <button className="nav-tab" onClick={() => navigate('/boards')}>My Boards</button>
-                        <ProfileMenu session={session} />
-                    </div>
-                </div>
-            </div>
             <div className="boards-page">
                 <div className="boards-header">
                     <h1>My Boards</h1>
                     <div className="board-menu" ref={menuRef}>
                         <button className="board-menu-btn" onClick={() => setMenuOpen(prev => !prev)}>···</button>
                         {menuOpen && (
-                            <div className="board-menu-dropdown-2">
+                            <div className="board-picker">
                                 <input
                                     value={newBoardName}
                                     onChange={e => setNewBoardName(e.target.value)}
                                     placeholder="New board name"
                                     onKeyDown={e => e.key === 'Enter' && handleCreate()}
                                 />
-                                <button onClick={handleCreate}>Create</button>
+                                <button className="create-save-btn" onClick={handleCreate}>Create</button>
                             </div>
                         )}
                     </div>
