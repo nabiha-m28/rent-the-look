@@ -7,10 +7,10 @@ import LoginPage from "./components/LoginPage";
 import { useNavigate } from "react-router-dom";
 import { useState, useRef } from "react";
 import { Search, Bookmark } from "lucide-react";
+import HowItWorks from "./components/HowItWorks";
 
 export default function App() {
   const session = useAuth();
-  const [showLogin, setShowLogin] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState("");
   const [progress, setProgress] = useState(0);
@@ -357,218 +357,199 @@ Respond ONLY with a valid JSON object, no markdown:
 
   return (
     <>
-      {showLogin && <LoginPage onClose={() => setShowLogin(false)} />}
-      <div className="app">
-        <div className="app-header">
-          <span className="logo-link" onClick={() => navigate('/')}>Rent the Look</span>
-          {session ? (
-            <div className="header-nav">
-              <button className="nav-tab" onClick={() => navigate('/')} title="Search" aria-label="Search">
-                <Search size={20} />
-              </button>
-              <button className="nav-tab" onClick={() => navigate('/boards')} title="My Boards" aria-label="My Boards">
-                <Bookmark size={20} />
-              </button>
-              <ProfileMenu session={session} />
+      <div className={`container ${hasSearched ? "container--wide" : ""}`}>
+        {!hasSearched && (
+          <header>
+            <h1>Rent the Look</h1>
+            <p><i>Paste a product link and we'll find it or the closest match on rental sites, <br />matching your size and saving you the hassle of browsing multiple platforms.</i></p>
+          </header>
+        )}
+
+        {!hasSearched && (
+          <div className="search-row">
+            <input
+              type="text"
+              value={url}
+              onChange={(e) => updateUrl(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && findRentals()}
+              placeholder="Paste a product URL"
+            />
+            <button type="button" onClick={findRentals} disabled={loading}>
+              {loading ? "Searching…" : "Find Rentals"}
+            </button>
+          </div>
+        )}
+
+        {!hasSearched && filtersRow}
+
+        {loading && !result && (
+          <div className="progress-wrap">
+            <div className="progress-label">{loadingMsg}</div>
+            <div className="progress-track">
+              <div className="progress-fill" style={{ width: `${progress}%` }} />
             </div>
-          ) : (
-            <button className="login-btn" onClick={() => setShowLogin(true)}>Log In</button>
-          )}
-        </div>
-        <div className={`container ${hasSearched ? "container--wide" : ""}`}>
-          {!hasSearched && (
-            <header>
-              <h1>Rent the Look</h1>
-              <p><i>Paste a product link and we'll find it or the closest match on rental platforms, <br />matching your size and saving you the hassle of browsing multiple platforms.</i></p>
-            </header>
-          )}
+          </div>
+        )}
 
-          {!hasSearched && (
-            <div className="search-row">
-              <input
-                type="text"
-                value={url}
-                onChange={(e) => updateUrl(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && findRentals()}
-                placeholder="Paste a product URL"
-              />
-              <button type="button" onClick={findRentals} disabled={loading}>
-                {loading ? "Searching…" : "Find Rentals"}
-              </button>
-            </div>
-          )}
+        {error && <p className="error">{error}</p>}
 
-
-          {!hasSearched && filtersRow}
-
-          {loading && !result && (
-            <div className="progress-wrap">
-              <div className="progress-label">{loadingMsg}</div>
-              <div className="progress-track">
-                <div className="progress-fill" style={{ width: `${progress}%` }} />
-              </div>
-            </div>
-          )}
-
-          {error && <p className="error">{error}</p>}
-
-          {result && (
-            <div className="results">
-              <button className="new-search-btn" onClick={clearSearch}>
-                ← New search
-              </button>
-              <div className="item-card">
-                {result.image && (
-                  <img src={result.image} alt={result.name} className="product-image" />
+        {result && (
+          <div className="results">
+            <button className="new-search-btn" onClick={clearSearch}>
+              ← New search
+            </button>
+            <div className="item-card">
+              {result.image && (
+                <img src={result.image} alt={result.name} className="product-image" />
+              )}
+              <div className="item-info">
+                <div className="brand">{result.brand}</div>
+                <h2>{result.name}</h2>
+                {result.retailPrice > 0 && (
+                  <div className="retail-price">${result.retailPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} retail</div>
                 )}
-                <div className="item-info">
-                  <div className="brand">{result.brand}</div>
-                  <h2>{result.name}</h2>
-                  {result.retailPrice > 0 && (
-                    <div className="retail-price">${result.retailPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} retail</div>
-                  )}
+              </div>
+            </div>
+
+            {!loading && (
+              <div className="filters-row">
+                <div className="filter">
+                  <span className="filter-label">Size:</span>
+                  <select
+                    className="filter-dropdown"
+                    value={selectedSizeGroup}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setSelectedSizeGroup(value);
+                      if (value === "") {
+                        setSelectedSizes([]);
+                        return;
+                      }
+                      const group = SIZE_GROUPS.find(g => g.label === value);
+                      setSelectedSizes(group ? group.values : []);
+                    }}
+                  >
+                    <option value="">All sizes</option>
+                    {SIZE_GROUPS.map(group => (
+                      <option key={group.label} value={group.label}>{group.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="filter">
+                  <span className="filter-label">Price:</span>
+                  <select
+                    className="filter-dropdown"
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value)}
+                  >
+                    <option value="">All prices</option>
+                    <option value="50">Under $50</option>
+                    <option value="75">Under $75</option>
+                    <option value="100">Under $100</option>
+                    <option value="300">Under $300</option>
+                  </select>
+                </div>
+
+                <div className="filter">
+                  <span className="filter-label">Platform:</span>
+                  <select
+                    className="filter-dropdown"
+                    value={selectedSites[0] || ""}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setSelectedSites(value ? [value] : []);
+                    }}
+                  >
+                    <option value="">All platforms</option>
+                    {allSites.map(site => (
+                      <option key={site} value={site}>{site}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
+            )}
 
-              {!loading && (
-                <div className="filters-row">
-                  <div className="filter">
-                    <span className="filter-label">Size:</span>
-                    <select
-                      className="filter-dropdown"
-                      value={selectedSizeGroup}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setSelectedSizeGroup(value);
-                        if (value === "") {
-                          setSelectedSizes([]);
-                          return;
-                        }
-                        const group = SIZE_GROUPS.find(g => g.label === value);
-                        setSelectedSizes(group ? group.values : []);
-                      }}
-                    >
-                      <option value="">All sizes</option>
-                      {SIZE_GROUPS.map(group => (
-                        <option key={group.label} value={group.label}>{group.label}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="filter">
-                    <span className="filter-label">Price:</span>
-                    <select
-                      className="filter-dropdown"
-                      value={maxPrice}
-                      onChange={(e) => setMaxPrice(e.target.value)}
-                    >
-                      <option value="">All prices</option>
-                      <option value="50">Under $50</option>
-                      <option value="75">Under $75</option>
-                      <option value="100">Under $100</option>
-                      <option value="300">Under $300</option>
-                    </select>
-                  </div>
-
-                  <div className="filter">
-                    <span className="filter-label">Platforms:</span>
-                    <select
-                      className="filter-dropdown"
-                      value={selectedSites[0] || ""}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        setSelectedSites(value ? [value] : []);
-                      }}
-                    >
-                      <option value="">All platforms</option>
-                      {allSites.map(site => (
-                        <option key={site} value={site}>{site}</option>
-                      ))}
-                    </select>
-                  </div>
+            {loading && (
+              <div className="progress-wrap">
+                <div className="progress-label">{loadingMsg}</div>
+                <div className="progress-track">
+                  <div className="progress-fill" style={{ width: `${progress}%` }} />
                 </div>
-              )}
+              </div>
+            )}
 
-              {loading && (
-                <div className="progress-wrap">
-                  <div className="progress-label">{loadingMsg}</div>
-                  <div className="progress-track">
-                    <div className="progress-fill" style={{ width: `${progress}%` }} />
+            {!loading && (
+              <div className="results-layout">
+                <section className="results-main">
+                  <div className="results-toolbar">
+                    <span className="results-count">
+                      <strong>{displayListings.length}</strong> rental listing{displayListings.length !== 1 && "s"}
+                    </span>
+                    <label className="sort-wrap">
+                      <span>Sort</span>
+                      <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
+                        <option value="price-asc">Price: low to high</option>
+                        <option value="price-desc">Price: high to low</option>
+                        <option value="savings">Biggest savings</option>
+                      </select>
+                    </label>
                   </div>
-                </div>
-              )}
 
-              {!loading && (
-                <div className="results-layout">
-                  <section className="results-main">
-                    <div className="results-toolbar">
-                      <span className="results-count">
-                        <strong>{displayListings.length}</strong> rental listing{displayListings.length !== 1 && "s"}
-                      </span>
-                      <label className="sort-wrap">
-                        <span>Sort</span>
-                        <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
-                          <option value="price-asc">Price: low to high</option>
-                          <option value="price-desc">Price: high to low</option>
-                          <option value="savings">Biggest savings</option>
-                        </select>
-                      </label>
+                  {displayListings.length === 0 ? (
+                    <p className="no-results">No listings match your filters.</p>
+                  ) : (
+                    <div className="product-grid">
+                      {displayListings.map((l, i) => {
+                        const saved = result.retailPrice > 0 && l.rentPrice
+                          ? result.retailPrice - l.rentPrice : null;
+                        return (
+                          <article key={l.url || i} className="product-card">
+                            <div className="product-media">
+                              <a href={l.url} target="_blank" rel="noopener noreferrer">
+                                {l.image
+                                  ? <img src={l.image} alt={l.name} loading="lazy" />
+                                  : <div className="img-fallback" />}
+                              </a>
+                              <SaveButton item={{ ...l, retailPrice: result.retailPrice }} />
+                            </div>
+                            <div className="product-meta">
+                              <span className="product-site">{l.site}</span>
+                              <h3 className="product-name">
+                                <a className="card-link" href={l.url} target="_blank" rel="noopener noreferrer">{l.name}</a>
+                              </h3>
+
+                              {(l.size || l.availableSizes?.length > 0) && (
+                                <div className="product-sizes">
+                                  {l.size ? `Size ${l.size}` : `Sizes ${l.availableSizes.join(", ")}`}
+                                </div>
+                              )}
+
+                              {l.rentPrice && (
+                                <div className="product-price">
+                                  ${l.rentPrice.toFixed(2)}
+                                  <span>{l.period === "month (for 6 items)" ? " /mo (6 items)" : " /wk"}</span>
+                                </div>
+                              )}
+
+                              {saved > 0 && (
+                                <div className="product-savings">
+                                  Save ${saved.toFixed(0)} vs retail
+                                </div>
+                              )}
+                            </div>
+                          </article>
+                        );
+                      })}
                     </div>
-
-                    {displayListings.length === 0 ? (
-                      <p className="no-results">No listings match your filters.</p>
-                    ) : (
-                      <div className="product-grid">
-                        {displayListings.map((l, i) => {
-                          const saved = result.retailPrice > 0 && l.rentPrice
-                            ? result.retailPrice - l.rentPrice : null;
-                          return (
-                            <article key={l.url || i} className="product-card">
-                              <div className="product-media">
-                                <a href={l.url} target="_blank" rel="noopener noreferrer">
-                                  {l.image
-                                    ? <img src={l.image} alt={l.name} loading="lazy" />
-                                    : <div className="img-fallback" />}
-                                </a>
-                                <SaveButton item={{ ...l, retailPrice: result.retailPrice }} />
-                              </div>
-                              <div className="product-meta">
-                                <span className="product-site">{l.site}</span>
-                                <h3 className="product-name">
-                                  <a className="card-link" href={l.url} target="_blank" rel="noopener noreferrer">{l.name}</a>
-                                </h3>
-
-                                {(l.size || l.availableSizes?.length > 0) && (
-                                  <div className="product-sizes">
-                                    {l.size ? `Size ${l.size}` : `Sizes ${l.availableSizes.join(", ")}`}
-                                  </div>
-                                )}
-
-                                {l.rentPrice && (
-                                  <div className="product-price">
-                                    ${l.rentPrice.toFixed(2)}
-                                    <span>{l.period === "month (for 6 items)" ? " /mo (6 items)" : " /wk"}</span>
-                                  </div>
-                                )}
-
-                                {saved > 0 && (
-                                  <div className="product-savings">
-                                    Save ${saved.toFixed(0)} vs retail
-                                  </div>
-                                )}
-                              </div>
-                            </article>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </section>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+                  )}
+                </section>
+              </div>
+            )}
+          </div>
+        )}
       </div>
+      {!hasSearched && <HowItWorks />}
     </>
   );
 }

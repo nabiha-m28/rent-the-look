@@ -160,20 +160,6 @@ function BoardsPage() {
 
     return (
         <>
-            <div className="app-header-wrap">
-                <div className="app-header">
-                    <span className="logo-link" onClick={() => navigate('/', { replace: true })}>Rent the Look</span>
-                    <div className="header-nav">
-                        <button className="nav-tab" onClick={() => navigate('/')} title="Search" aria-label="Search">
-                            <Search size={20} />
-                        </button>
-                        <button className="nav-tab" onClick={() => navigate('/boards')} title="My Boards" aria-label="My Boards">
-                            <Bookmark size={20} />
-                        </button>
-                        <ProfileMenu session={session} />
-                    </div>
-                </div>
-            </div>
             <div className="boards-page">
                 <div className="boards-header">
                     <h1>My Boards</h1>
